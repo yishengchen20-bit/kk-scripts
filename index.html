@@ -1,0 +1,3269 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="个人理财与计划清单管理应用，帮助您管理日常计划和消费支出">
+    <meta name="theme-color" content="#6366F1">
+    <link rel="manifest" href="/manifest.json">
+    <link rel="icon" href="https://img.icons8.com/color/48/000000/trophy.png" type="image/png">
+    <link rel="apple-touch-icon" href="https://img.icons8.com/color/180/000000/trophy.png">
+    <title>个人计划与理财助手</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/lucide@0.544.0/dist/umd/lucide.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.8/dist/chart.umd.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/particles.js/2.0.0/particles.min.js"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
+        
+        :root {
+            --primary-color: #6366F1;
+            --secondary-color: #8B5CF6;
+            --accent-color: #EC4899;
+            --background-color: #F9FAFB;
+            --card-background: rgba(255, 255, 255, 0.8);
+            --text-color: #1F2937;
+            --text-light: #6B7280;
+            --border-color: rgba(229, 231, 235, 0.8);
+            --shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+            --success-color: #10B981;
+            --warning-color: #F59E0B;
+            --danger-color: #EF4444;
+            --info-color: #3B82F6;
+        }
+        
+        .dark {
+            --primary-color: #818CF8;
+            --secondary-color: #A78BFA;
+            --accent-color: #F472B6;
+            --background-color: #111827;
+            --card-background: rgba(31, 41, 55, 0.8);
+            --text-color: #F9FAFB;
+            --text-light: #9CA3AF;
+            --border-color: rgba(55, 65, 81, 0.8);
+            --shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.3), 0 4px 6px -2px rgba(0, 0, 0, 0.2);
+        }
+        
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            -webkit-tap-highlight-color: transparent;
+        }
+        
+        body {
+            font-family: 'Inter', sans-serif;
+            background: linear-gradient(135deg, #4F46E5 0%, #8B5CF6 100%);
+            min-height: 100vh;
+            color: var(--text-color);
+            transition: background-color 0.3s, color 0.3s;
+            overflow-x: hidden;
+            position: relative;
+        }
+        
+        body::before {
+            content: '';
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: linear-gradient(135deg, #4F46E5 0%, #8B5CF6 100%);
+            z-index: -1;
+            transition: background 0.3s ease;
+        }
+        
+        .dark body::before {
+            background: linear-gradient(135deg, #1E1B4B 0%, #312E81 100%);
+        }
+        
+        /* Animated background particles */
+        #particles-js {
+            position: fixed;
+            width: 100%;
+            height: 100%;
+            top: 0;
+            left: 0;
+            z-index: -1;
+        }
+        
+        .app-container {
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+            border-radius: 24px;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            box-shadow: var(--shadow);
+            overflow: hidden;
+            margin: 16px;
+            min-height: calc(100vh - 32px);
+        }
+        
+        .card {
+            background: var(--card-background);
+            backdrop-filter: blur(10px);
+            -webkit-backdrop-filter: blur(10px);
+            border: 1px solid var(--border-color);
+            border-radius: 20px;
+            box-shadow: var(--shadow);
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+            padding: 20px;
+            margin-bottom: 16px;
+        }
+        
+        .card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+        }
+        
+        .btn-primary {
+            background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
+            color: white;
+            border: none;
+            border-radius: 16px;
+            padding: 16px 24px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            box-shadow: 0 6px 16px rgba(79, 70, 229, 0.4);
+            min-height: 52px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+        }
+        
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 15px -3px rgba(79, 70, 229, 0.4);
+        }
+        
+        .btn-primary:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+            transform: none;
+            box-shadow: none;
+        }
+        
+        .btn-secondary {
+            background: linear-gradient(135deg, var(--secondary-color), var(--accent-color));
+            color: white;
+            border: none;
+            border-radius: 12px;
+            padding: 12px 24px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 6px -1px rgba(139, 92, 246, 0.3);
+        }
+        
+        .btn-secondary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 15px -3px rgba(139, 92, 246, 0.4);
+        }
+        
+        select.input-field {
+            background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 20 20'%3e%3cpath stroke='%236b7280' stroke-linecap='round' stroke-linejoin='round' stroke-width='1.5' d='m6 8 4 4 4-4'/%3e%3c/svg%3e");
+            background-position: right 0.5rem center;
+            background-repeat: no-repeat;
+            background-size: 1.5em 1.5em;
+            padding-right: 2.5rem;
+            -webkit-print-color-adjust: exact;
+            print-color-adjust: exact;
+            appearance: none;
+        }
+
+        .input-field {
+            background: rgba(255, 255, 255, 0.1);
+            border: 1px solid var(--border-color);
+            border-radius: 12px;
+            padding: 12px 16px;
+            font-size: 16px;
+            color: var(--text-color);
+            transition: all 0.3s ease;
+            backdrop-filter: blur(5px);
+            -webkit-backdrop-filter: blur(5px);
+        }
+        
+        .input-field:focus {
+            outline: none;
+            border-color: var(--primary-color);
+            box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.2);
+            background: rgba(255, 255, 255, 0.2);
+        }
+
+        /* Select dropdown styles */
+        select.input-field {
+            appearance: none;
+            background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 20 20'%3e%3cpath stroke='%236b7280' stroke-linecap='round' stroke-linejoin='round' stroke-width='1.5' d='M6 8l4 4 4-4'/%3e%3c/svg%3e");
+            background-position: right 0.5rem center;
+            background-repeat: no-repeat;
+            background-size: 1.5em 1.5em;
+            padding-right: 2.5rem;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            cursor: pointer;
+        }
+
+        select.input-field option {
+            background: var(--card-background);
+            color: var(--text-color);
+        }
+
+        .dark select.input-field option {
+            background: #1F2937;
+            color: #F9FAFB;
+        }
+        
+        .tab-container {
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(10px);
+            -webkit-backdrop-filter: blur(10px);
+            border-radius: 12px;
+            padding: 4px;
+        }
+        
+        .tab-button {
+            padding: 10px 20px;
+            border-radius: 8px;
+            font-weight: 500;
+            transition: all 0.3s ease;
+            cursor: pointer;
+        }
+        
+        .tab-button.active {
+            background: var(--card-background);
+            color: var(--primary-color);
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+        }
+        
+        .plan-item {
+            transition: all 0.3s ease;
+        }
+        
+        .plan-item:hover {
+            transform: translateX(5px);
+        }
+        
+        .plan-item-completed {
+            opacity: 0.7;
+            transition: all 0.3s ease;
+        }
+        
+        .plan-item-completed .plan-text {
+            text-decoration: line-through;
+        }
+        
+        .lingbao-animation {
+            animation: bounce 0.6s ease-in-out infinite alternate;
+        }
+        
+        @keyframes bounce {
+            from { transform: translateY(0); }
+            to { transform: translateY(-10px); }
+        }
+        
+        .category-icon {
+            width: 32px;
+            height: 32px;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 50%;
+            margin-right: 12px;
+            font-size: 16px;
+        }
+        
+        .category-food { background: linear-gradient(135deg, #FEF3C7, #FDE68A); color: #92400E; }
+        .category-transport { background: linear-gradient(135deg, #DBEAFE, #BFDBFE); color: #1E40AF; }
+        .category-shopping { background: linear-gradient(135deg, #FCE7F3, #FBCFE8); color: #9D174D; }
+        .category-entertainment { background: linear-gradient(135deg, #E0E7FF, #C7D2FE); color: #4338CA; }
+        .category-other { background: linear-gradient(135deg, #E5E7EB, #D1D5DB); color: #374151; }
+        
+        .dark .category-food { background: linear-gradient(135deg, #451A03, #78350F); color: #FBBF24; }
+        .dark .category-transport { background: linear-gradient(135deg, #1E3A8A, #3730A3); color: #60A5FA; }
+        .dark .category-shopping { background: linear-gradient(135deg, #831843, #BE185D); color: #F472B6; }
+        .dark .category-entertainment { background: linear-gradient(135deg, #3730A3, #4F46E5); color: #818CF8; }
+        .dark .category-other { background: linear-gradient(135deg, #4B5563, #6B7280); color: #D1D5DB; }
+        
+        .modal-backdrop {
+            background: rgba(0, 0, 0, 0.5);
+            backdrop-filter: blur(5px);
+            -webkit-backdrop-filter: blur(5px);
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 50;
+            animation: fadeIn 0.3s ease;
+        }
+        
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+        
+        .modal-content {
+            background: var(--card-background);
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+            border-radius: 20px;
+            padding: 24px;
+            width: 90%;
+            max-width: 500px;
+            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
+            animation: slideUp 0.3s ease;
+            border: 1px solid var(--border-color);
+        }
+        
+        @keyframes slideUp {
+            from { transform: translateY(20px); opacity: 0; }
+            to { transform: translateY(0); opacity: 1; }
+        }
+        
+        .toast {
+            position: fixed;
+            bottom: 30px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: linear-gradient(135deg, var(--secondary-color), var(--accent-color));
+            color: white;
+            padding: 12px 24px;
+            border-radius: 12px;
+            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.2);
+            z-index: 100;
+            opacity: 0;
+            transition: all 0.3s ease;
+            font-weight: 500;
+        }
+        
+        .toast.show {
+            opacity: 1;
+            transform: translateX(-50%) translateY(-10px);
+        }
+        
+        .stat-card {
+            background: linear-gradient(135deg, rgba(255, 255, 255, 0.1), rgba(255, 255, 255, 0.05));
+            backdrop-filter: blur(10px);
+            -webkit-backdrop-filter: blur(10px);
+            border-radius: 16px;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            transition: all 0.3s ease;
+        }
+        
+        .stat-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1);
+        }
+        
+        /* Anniversary specific styles */
+        .anniversary-card {
+            background: var(--card-background);
+            backdrop-filter: blur(10px);
+            -webkit-backdrop-filter: blur(10px);
+            border: 1px solid var(--border-color);
+            border-radius: 16px;
+            box-shadow: var(--shadow);
+            transition: all 0.3s ease;
+        }
+        
+        .anniversary-card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1);
+        }
+        
+        .gradient-bg-past {
+            background: linear-gradient(135deg, #ECFDF5, #D1FAE5);
+        }
+        
+        .gradient-bg-future {
+            background: linear-gradient(135deg, #EFF6FF, #DBEAFE);
+        }
+        
+        .dark .gradient-bg-past {
+            background: linear-gradient(135deg, #064E3B, #059669);
+        }
+        
+        .dark .gradient-bg-future {
+            background: linear-gradient(135deg, #1E3A8A, #2563EB);
+        }
+        
+        .theme-toggle {
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(5px);
+            -webkit-backdrop-filter: blur(5px);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            border-radius: 50%;
+            width: 48px;
+            height: 48px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+        
+        .theme-toggle:hover {
+            transform: rotate(180deg);
+            background: rgba(255, 255, 255, 0.2);
+        }
+        
+        .glass-icon {
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(5px);
+            -webkit-backdrop-filter: blur(5px);
+            border-radius: 50%;
+            width: 40px;
+            height: 40px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.3s ease;
+        }
+        
+        .glass-icon:hover {
+            background: rgba(255, 255, 255, 0.2);
+            transform: scale(1.1);
+        }
+        
+        .btn-ghost {
+            background: transparent;
+            border: 1px solid var(--border-color);
+            color: var(--text-color);
+            border-radius: 12px;
+            padding: 10px 20px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+        
+        .btn-ghost:hover {
+            background: rgba(255, 255, 255, 0.1);
+            border-color: var(--primary-color);
+        }
+        
+        .btn-danger {
+            background: linear-gradient(135deg, #EF4444, #DC2626);
+            color: white;
+            border: none;
+            border-radius: 12px;
+            padding: 10px 20px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+        
+        .btn-danger:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 15px -3px rgba(239, 68, 68, 0.4);
+        }
+        
+        /* Premium Mobile Design */
+        @media (max-width: 768px) {
+            /* Base styles */
+            body {
+                font-size: 14px;
+                line-height: 1.5;
+                background: linear-gradient(135deg, #4F46E5 0%, #8B5CF6 100%) !important;
+                touch-action: manipulation;
+            }
+            
+            body::before {
+                background: linear-gradient(135deg, #4F46E5 0%, #8B5CF6 100%) !important;
+            }
+            
+            .dark body::before {
+                background: linear-gradient(135deg, #1E1B4B 0%, #312E81 100%) !important;
+            }
+            
+            .app-container {
+                border-radius: 0;
+                height: 100vh;
+                margin: 0;
+                padding: 0;
+                overflow-y: auto;
+                position: relative;
+            }
+            
+            /* Header with premium touch */
+            header {
+                padding: 32px 20px 24px;
+                text-align: center;
+                position: relative;
+                overflow: hidden;
+            }
+            
+            header::before {
+                content: '';
+                position: absolute;
+                top: 0;
+                left: 0;
+                right: 0;
+                height: 100px;
+                background: linear-gradient(135deg, rgba(255,255,255,0.15) 0%, rgba(255,255,255,0.08) 100%);
+                filter: blur(25px);
+                z-index: 0;
+            }
+            
+            header > div {
+                position: relative;
+                z-index: 1;
+            }
+            
+            header h1 {
+                font-size: 28px;
+                font-weight: 700;
+                margin-bottom: 6px;
+                color: white;
+                text-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+                letter-spacing: -0.02em;
+            }
+            
+            header p {
+                font-size: 15px;
+                opacity: 0.95;
+                font-weight: 400;
+            }
+            
+            /* Theme toggle button */
+            .theme-toggle {
+                position: absolute;
+                top: 20px;
+                right: 20px;
+                width: 44px;
+                height: 44px;
+                background: rgba(255, 255, 255, 0.15);
+                backdrop-filter: blur(10px);
+                border: 1px solid rgba(255, 255, 255, 0.2);
+                border-radius: 50%;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                cursor: pointer;
+                transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+                box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+            }
+            
+            .theme-toggle:hover {
+                transform: rotate(180deg) scale(1.1);
+                background: rgba(255, 255, 255, 0.25);
+            }
+            
+            /* Tab Navigation */
+            .tab-container {
+                overflow-x: auto;
+                margin: 0 20px 20px;
+                padding: 6px;
+                border-radius: 20px;
+                background: rgba(255, 255, 255, 0.15);
+                backdrop-filter: blur(10px);
+                -webkit-backdrop-filter: blur(10px);
+                border: 1px solid rgba(255, 255, 255, 0.2);
+                box-shadow: 0 4px 16px rgba(0, 0, 0, 0.12);
+                scrollbar-width: none;
+                -ms-overflow-style: none;
+            }
+            
+            .tab-container::-webkit-scrollbar {
+                display: none;
+            }
+            
+            .tab-button {
+                white-space: nowrap;
+                padding: 12px 20px;
+                font-size: 15px;
+                border-radius: 16px;
+                transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+                margin-right: 6px;
+                min-width: fit-content;
+            }
+            
+            .tab-button.active {
+                background: var(--card-background);
+                color: var(--primary-color);
+                box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+                font-weight: 600;
+            }
+            
+            /* Sections */
+            section {
+                padding: 0 20px 32px !important;
+            }
+            
+            /* Cards */
+            .card {
+                margin-bottom: 20px;
+                padding: 24px;
+                border-radius: 24px;
+                background: var(--card-background);
+                backdrop-filter: blur(15px);
+                -webkit-backdrop-filter: blur(15px);
+                border: 1px solid var(--border-color);
+                box-shadow: 0 8px 24px rgba(0, 0, 0, 0.1);
+            }
+            
+            /* Input fields */
+            select.input-field {
+            background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 20 20'%3e%3cpath stroke='%236b7280' stroke-linecap='round' stroke-linejoin='round' stroke-width='1.5' d='m6 8 4 4 4-4'/%3e%3c/svg%3e");
+            background-position: right 0.5rem center;
+            background-repeat: no-repeat;
+            background-size: 1.5em 1.5em;
+            padding-right: 2.5rem;
+            -webkit-print-color-adjust: exact;
+            print-color-adjust: exact;
+            appearance: none;
+        }
+
+        .input-field {
+                padding: 18px 24px;
+                font-size: 18px;
+                border-radius: 20px;
+                margin-bottom: 16px;
+                background: rgba(255, 255, 255, 0.15);
+                border: 1px solid var(--border-color);
+                transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+                min-height: 56px;
+                letter-spacing: 0.01em;
+                line-height: 1.4;
+            }
+            
+            /* Mobile select styles */
+            select.input-field {
+                background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 24 24'%3e%3cpath stroke='%236b7280' stroke-linecap='round' stroke-linejoin='round' stroke-width='2' d='M6 9l6 6 6-6'/%3e%3c/svg%3e");
+                background-position: right 16px center;
+                background-size: 20px 20px;
+                padding-right: 56px;
+                font-size: 16px;
+                font-weight: 500;
+                letter-spacing: 0.01em;
+            }
+            
+            .dark select.input-field {
+                background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 24 24'%3e%3cpath stroke='%239CA3AF' stroke-linecap='round' stroke-linejoin='round' stroke-width='2' d='M6 9l6 6 6-6'/%3e%3c/svg%3e");
+            }
+            
+            select.input-field:focus {
+                background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 24 24'%3e%3cpath stroke='%236366F1' stroke-linecap='round' stroke-linejoin='round' stroke-width='2' d='M6 9l6 6 6-6'/%3e%3c/svg%3e");
+                border-color: var(--primary-color);
+                box-shadow: 0 0 0 4px rgba(99, 102, 241, 0.2);
+                background-color: rgba(255, 255, 255, 0.25);
+            }
+            
+            .dark select.input-field:focus {
+                background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 24 24'%3e%3cpath stroke='%23818CF8' stroke-linecap='round' stroke-linejoin='round' stroke-width='2' d='M6 9l6 6 6-6'/%3e%3c/svg%3e");
+            }
+            
+            /* Select wrapper for better touch target */
+            .select-wrapper {
+                position: relative;
+                display: block;
+                margin-bottom: 16px;
+            }
+            
+            .select-wrapper::after {
+                content: '';
+                position: absolute;
+                right: 16px;
+                top: 50%;
+                transform: translateY(-50%);
+                width: 40px;
+                height: 40px;
+                border-radius: 50%;
+                background: rgba(255, 255, 255, 0.1);
+                backdrop-filter: blur(5px);
+                z-index: 1;
+                opacity: 0;
+                transition: opacity 0.3s ease;
+            }
+            
+            .select-wrapper:focus-within::after {
+                opacity: 1;
+            }
+            
+            .input-field:focus {
+                border-color: var(--primary-color);
+                box-shadow: 0 0 0 4px rgba(99, 102, 241, 0.2);
+                background: rgba(255, 255, 255, 0.25);
+            }
+            
+            /* Buttons */
+            .btn-primary, .btn-secondary, .btn-danger {
+                padding: 16px 24px;
+                font-size: 16px;
+                font-weight: 600;
+                border-radius: 18px;
+                margin-bottom: 12px;
+                transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+                box-shadow: 0 6px 16px rgba(0, 0, 0, 0.15);
+                min-height: 52px;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+            }
+            
+            .btn-primary:hover, .btn-secondary:hover, .btn-danger:hover {
+                transform: translateY(-2px);
+                box-shadow: 0 8px 20px rgba(0, 0, 0, 0.2);
+            }
+            
+            /* Lists */
+            ul {
+                gap: 16px;
+            }
+            
+            .plan-item, .finance-item {
+                padding: 24px;
+                border-radius: 20px;
+                margin-bottom: 16px;
+                background: rgba(255, 255, 255, 0.1);
+                backdrop-filter: blur(10px);
+                -webkit-backdrop-filter: blur(10px);
+                border: 1px solid var(--border-color);
+                transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+                position: relative;
+                overflow: hidden;
+            }
+            
+            .plan-item:hover, .finance-item:hover {
+                transform: translateY(-2px);
+                box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+            }
+            
+            /* Stats cards */
+            .stat-card {
+                padding: 28px;
+                margin-bottom: 16px;
+                border-radius: 24px;
+                text-align: center;
+                background: linear-gradient(135deg, rgba(255, 255, 255, 0.1), rgba(255, 255, 255, 0.05));
+                backdrop-filter: blur(10px);
+                -webkit-backdrop-filter: blur(10px);
+                border: 1px solid rgba(255, 255, 255, 0.2);
+                transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+                position: relative;
+                overflow: hidden;
+            }
+
+            .stat-card::before {
+                content: '';
+                position: absolute;
+                top: 0;
+                left: 0;
+                right: 0;
+                height: 4px;
+                background: linear-gradient(90deg, var(--primary-color), var(--secondary-color));
+            }
+            
+            /* Anniversary section */
+            #anniversary-section .max-w-2xl {
+                width: 100%;
+                max-width: none;
+            }
+            
+            #anniversary-section .text-center {
+                margin-bottom: 24px;
+            }
+            
+            #anniversary-section h1 {
+                font-size: 28px;
+                margin-bottom: 8px;
+            }
+            
+            #anniversary-section .bg-white\/80 {
+                padding: 20px;
+                margin-bottom: 16px;
+                border-radius: 20px;
+            }
+            
+            #anniversary-section .grid-cols-1 {
+                gap: 12px;
+            }
+            
+            /* Charts */
+            canvas {
+                max-height: 250px !important;
+            }
+            
+            /* Modal */
+            .modal-content {
+                width: 95%;
+                max-width: 420px;
+                padding: 28px;
+                border-radius: 32px;
+                background: var(--card-background);
+                backdrop-filter: blur(20px);
+                -webkit-backdrop-filter: blur(20px);
+                border: 1px solid var(--border-color);
+                box-shadow: 0 25px 50px rgba(0, 0, 0, 0.35);
+                position: relative;
+            }
+            
+            /* Toast */
+            .toast {
+                bottom: 20px;
+                left: 16px;
+                right: 16px;
+                transform: none;
+                padding: 16px;
+                border-radius: 16px;
+                text-align: center;
+            }
+            
+            .toast.show {
+                transform: translateY(-10px);
+            }
+            
+            /* Spacing */
+            .mb-2 { margin-bottom: 0.75rem; }
+            .mb-4 { margin-bottom: 1.25rem; }
+            .mb-6 { margin-bottom: 1.75rem; }
+            .mb-8 { margin-bottom: 2.5rem; }
+            
+            .mt-2 { margin-top: 0.75rem; }
+            .mt-4 { margin-top: 1.25rem; }
+            .mt-6 { margin-top: 1.75rem; }
+            .mt-8 { margin-top: 2.5rem; }
+            
+            /* Typography */
+            h2 {
+                font-size: 22px;
+                margin-bottom: 20px;
+                font-weight: 700;
+                letter-spacing: -0.01em;
+            }
+            
+            h3 {
+                font-size: 20px;
+                margin-bottom: 16px;
+                font-weight: 600;
+                letter-spacing: -0.01em;
+            }
+            
+            p {
+                margin-bottom: 16px;
+                line-height: 1.6;
+                font-size: 15px;
+            }
+        }
+                
+                /* Navigation with premium feel */
+                nav {
+                    padding: 0 20px 20px;
+                }
+                
+                .tab-container {
+                    display: flex;
+                    overflow-x: auto;
+                    gap: 10px;
+                    padding: 10px;
+                    background: rgba(255, 255, 255, 0.12);
+                    backdrop-filter: blur(15px);
+                    border-radius: 16px;
+                    -webkit-overflow-scrolling: touch;
+                    border: 1px solid rgba(255, 255, 255, 0.1);
+                    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+                }
+                
+                .tab-container::-webkit-scrollbar {
+                    display: none;
+                }
+                
+                .tab-button {
+                    flex-shrink: 0;
+                    padding: 12px 20px;
+                    font-size: 15px;
+                    font-weight: 600;
+                    border-radius: 12px;
+                    white-space: nowrap;
+                    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+                    position: relative;
+                    overflow: hidden;
+                }
+                
+                .tab-button::before {
+                    content: '';
+                    position: absolute;
+                    top: 0;
+                    left: 0;
+                    right: 0;
+                    bottom: 0;
+                    background: linear-gradient(135deg, rgba(255,255,255,0.1) 0%, rgba(255,255,255,0.05) 100%);
+                    opacity: 0;
+                    transition: opacity 0.3s ease;
+                }
+                
+                .tab-button:hover::before {
+                    opacity: 1;
+                }
+                
+                .tab-button.active {
+                    background: rgba(255, 255, 255, 0.9);
+                    color: var(--primary-color);
+                    box-shadow: 0 4px 16px rgba(0, 0, 0, 0.15);
+                    transform: translateY(-2px);
+                }
+                
+                /* Main content */
+                .main-content {
+                    padding: 0 20px 30px;
+                }
+                
+                /* Premium cards */
+                .card {
+                    padding: 12px;
+                    margin-bottom: 12px;
+                    border-radius: 14px;
+                    background: rgba(255, 255, 255, 0.85);
+                    backdrop-filter: blur(20px);
+                    border: 1px solid rgba(255, 255, 255, 0.3);
+                    box-shadow: 0 6px 24px rgba(0, 0, 0, 0.1);
+                    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+                    position: relative;
+                    overflow: hidden;
+                }
+                
+                /* Dark mode card styles */
+                .dark .card {
+                    background: rgba(31, 41, 55, 0.85);
+                    border-color: rgba(107, 114, 128, 0.3);
+                    box-shadow: 0 10px 40px rgba(0, 0, 0, 0.3);
+                }
+                
+                .card::before {
+                    content: '';
+                    position: absolute;
+                    top: 0;
+                    left: 0;
+                    right: 0;
+                    height: 1px;
+                    background: linear-gradient(90deg, transparent 0%, rgba(255,255,255,0.5) 50%, transparent 100%);
+                }
+                
+                .card:hover {
+                    transform: translateY(-4px);
+                    box-shadow: 0 20px 50px rgba(0, 0, 0, 0.15);
+                }
+                
+                /* Premium inputs */
+                select.input-field {
+            background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 20 20'%3e%3cpath stroke='%236b7280' stroke-linecap='round' stroke-linejoin='round' stroke-width='1.5' d='m6 8 4 4 4-4'/%3e%3c/svg%3e");
+            background-position: right 0.5rem center;
+            background-repeat: no-repeat;
+            background-size: 1.5em 1.5em;
+            padding-right: 2.5rem;
+            -webkit-print-color-adjust: exact;
+            print-color-adjust: exact;
+            appearance: none;
+        }
+
+        .input-field {
+                    padding: 12px 14px;
+                    font-size: 14px;
+                    border-radius: 10px;
+                    background: rgba(255, 255, 255, 0.15);
+                    border: 1px solid rgba(255, 255, 255, 0.2);
+                    backdrop-filter: blur(10px);
+                    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+                    box-shadow: inset 0 2px 8px rgba(0, 0, 0, 0.05);
+                    color: var(--text-color);
+                    height: 40px;
+                }
+                
+                .input-field:focus {
+                    outline: none;
+                    border-color: var(--primary-color);
+                    box-shadow: 0 0 0 4px rgba(99, 102, 241, 0.25), inset 0 2px 8px rgba(0, 0, 0, 0.05);
+                    background: rgba(255, 255, 255, 0.25);
+                    transform: translateY(-1px);
+                }
+                
+                /* Dark mode input styles */
+                .dark .input-field {
+                    background: rgba(55, 65, 81, 0.8);
+                    border-color: rgba(107, 114, 128, 0.3);
+                    color: var(--text-color);
+                    box-shadow: inset 0 2px 8px rgba(0, 0, 0, 0.2);
+                }
+                
+                .dark .input-field:focus {
+                    background: rgba(75, 85, 99, 0.8);
+                    border-color: var(--primary-color);
+                    box-shadow: 0 0 0 4px rgba(129, 140, 248, 0.25), inset 0 2px 8px rgba(0, 0, 0, 0.2);
+                }
+                
+                /* Premium buttons */
+                .btn-primary, .btn-secondary {
+                    padding: 12px 18px;
+                    font-size: 14px;
+                    font-weight: 600;
+                    border-radius: 10px;
+                    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+                    position: relative;
+                    overflow: hidden;
+                    box-shadow: 0 4px 16px rgba(79, 70, 229, 0.3);
+                    height: auto;
+                    min-height: 44px;
+                    min-width: 80px;
+                    white-space: nowrap;
+                    display: inline-flex;
+                    align-items: center;
+                    justify-content: center;
+                    gap: 6px;
+                }
+                
+                .btn-primary i, .btn-secondary i {
+                    width: 16px !important;
+                    height: 16px !important;
+                    flex-shrink: 0;
+                }
+                
+                .btn-primary::before, .btn-secondary::before {
+                    content: '';
+                    position: absolute;
+                    top: 0;
+                    left: -100%;
+                    width: 100%;
+                    height: 100%;
+                    background: linear-gradient(90deg, transparent, rgba(255,255,255,0.2), transparent);
+                    transition: left 0.5s;
+                }
+                
+                .btn-primary:hover::before, .btn-secondary:hover::before {
+                    left: 100%;
+                }
+                
+                .btn-primary:hover, .btn-secondary:hover {
+                    transform: translateY(-3px);
+                    box-shadow: 0 12px 32px rgba(79, 70, 229, 0.4);
+                }
+                
+                .btn-ghost {
+                    padding: 12px 20px;
+                    font-size: 14px;
+                    border-radius: 12px;
+                    background: rgba(255, 255, 255, 0.1);
+                    border: 1px solid rgba(255, 255, 255, 0.2);
+                    backdrop-filter: blur(5px);
+                    transition: all 0.3s ease;
+                }
+                
+                .btn-ghost:hover {
+                    background: rgba(255, 255, 255, 0.2);
+                    transform: translateY(-2px);
+                }
+                
+                /* Premium typography */
+                h2 {
+                    font-size: 16px;
+                    font-weight: 700;
+                    margin-bottom: 10px;
+                    color: var(--text-color);
+                    position: relative;
+                    display: inline-block;
+                }
+                
+                .dark h2,
+                .dark h3,
+                .dark p,
+                .dark label {
+                    color: var(--text-color) !important;
+                }
+                
+                h2::after {
+                    content: '';
+                    position: absolute;
+                    bottom: -4px;
+                    left: 0;
+                    width: 40px;
+                    height: 3px;
+                    background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
+                    border-radius: 2px;
+                }
+                
+                h3 {
+                    font-size: 18px;
+                    font-weight: 600;
+                    margin-bottom: 12px;
+                    color: var(--text-color);
+                }
+                
+                /* Premium stats */
+                .stats-grid {
+                    display: grid;
+                    grid-template-columns: repeat(3, 1fr);
+                    gap: 16px;
+                    margin-bottom: 20px;
+                }
+                
+                .stat-card {
+                    padding: 16px 8px;
+                    text-align: center;
+                    border-radius: 12px;
+                    background: linear-gradient(135deg, rgba(255,255,255,0.15) 0%, rgba(255,255,255,0.08) 100%);
+                    backdrop-filter: blur(15px);
+                    border: 1px solid rgba(255, 255, 255, 0.2);
+                    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+                    position: relative;
+                    overflow: hidden;
+                }
+                
+                .stat-card::before {
+                    content: '';
+                    position: absolute;
+                    top: 0;
+                    left: 0;
+                    right: 0;
+                    height: 2px;
+                    background: linear-gradient(90deg, var(--primary-color), var(--secondary-color));
+                }
+                
+                .stat-card:hover {
+                    transform: translateY(-5px);
+                    box-shadow: 0 15px 35px rgba(0, 0, 0, 0.15);
+                }
+                
+                .stat-card h3 {
+                    font-size: 12px;
+                    margin-bottom: 8px;
+                    opacity: 0.9;
+                    font-weight: 500;
+                }
+                
+                .stat-card p {
+                    font-size: 18px;
+                    font-weight: 700;
+                    background: linear-gradient(135deg, #ffffff 0%, #e0e7ff 100%);
+                    -webkit-background-clip: text;
+                    -webkit-text-fill-color: transparent;
+                    background-clip: text;
+                }
+                
+                /* Premium lists */
+                ul {
+                    gap: 16px;
+                }
+                
+                li {
+                    padding: 12px;
+                    border-radius: 12px;
+                    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+                    position: relative;
+                    overflow: hidden;
+                }
+                
+                li::before {
+                    content: '';
+                    position: absolute;
+                    top: 0;
+                    left: 0;
+                    width: 4px;
+                    height: 100%;
+                    background: linear-gradient(180deg, var(--primary-color), var(--secondary-color));
+                    border-radius: 4px 0 0 4px;
+                }
+                
+                li:hover {
+                    transform: translateX(8px);
+                }
+                
+                /* Enhanced category icons */
+                .category-icon {
+                    width: 32px;
+                    height: 32px;
+                    font-size: 16px;
+                    margin-right: 10px;
+                    border-radius: 10px;
+                    box-shadow: 0 3px 10px rgba(0, 0, 0, 0.15);
+                    transition: all 0.3s ease;
+                }
+                
+                .category-icon:hover {
+                    transform: scale(1.1) rotate(5deg);
+                }
+                
+                /* Premium forms */
+                .form-group {
+                    margin-bottom: 20px;
+                }
+                
+                .form-group label {
+                    display: block;
+                    font-size: 15px;
+                    font-weight: 600;
+                    margin-bottom: 8px;
+                    color: var(--text-color);
+                }
+                
+                /* Premium charts */
+                .chart-container {
+                    height: 280px;
+                    margin: 20px 0;
+                    padding: 16px;
+                    background: rgba(255, 255, 255, 0.1);
+                    backdrop-filter: blur(10px);
+                    border-radius: 16px;
+                    border: 1px solid rgba(255, 255, 255, 0.2);
+                }
+                
+                /* Premium budget progress */
+                .budget-progress {
+                    margin: 20px 0;
+                }
+                
+                .budget-progress-bar {
+                    height: 12px;
+                    border-radius: 6px;
+                    overflow: hidden;
+                    background: rgba(255, 255, 255, 0.2);
+                    backdrop-filter: blur(5px);
+                    border: 1px solid rgba(255, 255, 255, 0.3);
+                }
+                
+                .budget-progress-fill {
+                    height: 100%;
+                    transition: width 0.6s cubic-bezier(0.4, 0, 0.2, 1);
+                    background: linear-gradient(90deg, var(--primary-color), var(--secondary-color));
+                    position: relative;
+                }
+                
+                .budget-progress-fill::after {
+                    content: '';
+                    position: absolute;
+                    top: 0;
+                    left: 0;
+                    right: 0;
+                    bottom: 0;
+                    background: linear-gradient(90deg, transparent, rgba(255,255,255,0.3), transparent);
+                    animation: shimmer 2s infinite;
+                }
+                
+                @keyframes shimmer {
+                    0% { transform: translateX(-100%); }
+                    100% { transform: translateX(100%); }
+                }
+                
+                /* Premium achievements */
+                .achievements-grid {
+                    display: grid;
+                    grid-template-columns: repeat(2, 1fr);
+                    gap: 16px;
+                }
+                
+                .achievement-card {
+                    padding: 16px;
+                    text-align: center;
+                    border-radius: 16px;
+                    background: rgba(255, 255, 255, 0.1);
+                    backdrop-filter: blur(10px);
+                    border: 1px solid rgba(255, 255, 255, 0.2);
+                    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+                    position: relative;
+                    overflow: hidden;
+                }
+                
+                .achievement-card::before {
+                    content: '';
+                    position: absolute;
+                    top: 0;
+                    left: 0;
+                    right: 0;
+                    height: 2px;
+                    background: linear-gradient(90deg, var(--accent-color), var(--secondary-color));
+                    transform: scaleX(0);
+                    transition: transform 0.3s ease;
+                }
+                
+                .achievement-card:hover::before {
+                    transform: scaleX(1);
+                }
+                
+                .achievement-card:hover {
+                    transform: translateY(-4px);
+                    box-shadow: 0 12px 24px rgba(0, 0, 0, 0.1);
+                }
+                
+                /* Premium toast */
+                .toast {
+                    bottom: 20px;
+                    left: 16px;
+                    right: 16px;
+                    transform: translateY(100px);
+                    padding: 14px 16px;
+                    font-size: 14px;
+                    font-weight: 500;
+                    border-radius: 12px;
+                    background: linear-gradient(135deg, var(--secondary-color), var(--accent-color));
+                    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.2);
+                    border: 1px solid rgba(255, 255, 255, 0.2);
+                    backdrop-filter: blur(10px);
+                    transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+                }
+                
+                .toast.show {
+                    transform: translateY(0);
+                }
+                
+                /* Premium modals */
+                .modal-content {
+                    width: 90%;
+                    max-width: 360px;
+                    padding: 20px;
+                    border-radius: 20px;
+                    background: var(--card-background);
+                    backdrop-filter: blur(30px);
+                    border: 1px solid rgba(255, 255, 255, 0.3);
+                    box-shadow: 0 20px 50px rgba(0, 0, 0, 0.3);
+                    animation: slideUp 0.5s cubic-bezier(0.4, 0, 0.2, 1);
+                }
+                
+                @keyframes slideUp {
+                    from { 
+                        transform: translateY(50px); 
+                        opacity: 0; 
+                    }
+                    to { 
+                        transform: translateY(0); 
+                        opacity: 1; 
+                    }
+                }
+                
+                /* Enhanced scrollbar */
+                ::-webkit-scrollbar {
+                    width: 8px;
+                }
+                
+                ::-webkit-scrollbar-track {
+                    background: rgba(255, 255, 255, 0.1);
+                }
+                
+                ::-webkit-scrollbar-thumb {
+                    background: rgba(255, 255, 255, 0.3);
+                    border-radius: 4px;
+                }
+                
+                ::-webkit-scrollbar-thumb:hover {
+                    background: rgba(255, 255, 255, 0.5);
+                }
+            }
+            
+            /* Toast adjustments */
+            .toast {
+                padding: 8px 16px;
+                font-size: 12px;
+                bottom: 20px;
+            }
+            
+            /* Modal adjustments */
+            .modal-content h3 {
+                font-size: 16px;
+            }
+            
+            .modal-content p {
+                font-size: 13px;
+            }
+            
+            /* Grid adjustments */
+            .grid {
+                gap: 8px !important;
+            }
+        }
+    </style>
+</head>
+<body class="min-h-screen p-4 md:p-8 flex items-center justify-center">
+    <div id="particles-js"></div>
+    <div id="app" class="app-container w-full max-w-4xl mx-auto relative z-10">
+        <!-- Header -->
+        <header class="p-6 flex justify-between items-center">
+            <div>
+                <h1 class="text-3xl font-bold text-white">理财与计划清单</h1>
+                <p class="text-white/80 text-sm mt-1">让生活更有条理，财务更清晰</p>
+            </div>
+            <button id="theme-toggle" class="theme-toggle">
+                <i data-lucide="sun" class="block dark:hidden text-white"></i>
+                <i data-lucide="moon" class="hidden dark:block text-white"></i>
+            </button>
+        </header>
+
+        <!-- Countdown Section (Always Visible) -->
+        <section id="anniversary-section" class="px-6 mb-6">
+            <!-- Header -->
+            <div class="text-center mb-6">
+                <h2 class="text-2xl font-bold text-white mb-1">倒数乐</h2>
+                <p class="text-white/80 text-sm">记录重要时刻，让等待更有意义</p>
+            </div>
+
+            <!-- Statistics Cards -->
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
+                <div class="bg-white/20 backdrop-blur-lg rounded-xl p-4 border border-white/30">
+                    <div class="flex items-center">
+                        <div class="bg-blue-500/30 p-2 rounded-lg mr-3">
+                            <i data-lucide="clock" class="w-5 h-5 text-blue-300"></i>
+                        </div>
+                        <div>
+                            <h3 class="text-xs font-medium text-white/70">即将到来</h3>
+                            <p id="upcoming-count" class="text-xl font-bold text-white">0</p>
+                        </div>
+                    </div>
+                </div>
+                <div class="bg-white/20 backdrop-blur-lg rounded-xl p-4 border border-white/30">
+                    <div class="flex items-center">
+                        <div class="bg-purple-500/30 p-2 rounded-lg mr-3">
+                            <i data-lucide="calendar-check" class="w-5 h-5 text-purple-300"></i>
+                        </div>
+                        <div>
+                            <h3 class="text-xs font-medium text-white/70">已过天数</h3>
+                            <p id="past-count" class="text-xl font-bold text-white">0</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Countdown List -->
+            <div class="bg-white/10 backdrop-blur-lg rounded-xl shadow-lg border border-white/20 p-4 mb-6">
+                <div class="flex justify-between items-center mb-4">
+                    <h3 class="text-lg font-bold text-white">我的倒数日</h3>
+                    <button id="quick-add-btn" class="bg-gradient-to-r from-green-500 to-emerald-500 hover:from-green-600 hover:to-emerald-600 text-white px-3 py-1 rounded-lg text-xs font-medium transition-all transform hover:scale-105">
+                        <i data-lucide="plus" class="w-3 h-3 inline-block mr-1"></i>快速添加
+                    </button>
+                </div>
+                <div id="anniversaries-list" class="space-y-3">
+                    <!-- Anniversaries will be added here -->
+                </div>
+            </div>
+        </section>
+
+        <!-- Navigation Tabs -->
+        <nav class="px-6 mb-6">
+            <div class="tab-container flex">
+                <button id="plan-tab" class="tab-button active flex-1 text-center">
+                    <i data-lucide="clipboard-list" class="inline-block mr-2"></i>计划清单
+                </button>
+                <button id="finance-tab" class="tab-button flex-1 text-center">
+                    <i data-lucide="wallet" class="inline-block mr-2"></i>理财记录
+                </button>
+                <button id="stats-tab" class="tab-button flex-1 text-center">
+                    <i data-lucide="pie-chart" class="inline-block mr-2"></i>统计分析
+                </button>
+                <button id="budget-tab" class="tab-button flex-1 text-center">
+                    <i data-lucide="target" class="inline-block mr-2"></i>预算管理
+                </button>
+
+            </div>
+        </nav>
+
+        <!-- Plan List Section -->
+        <section id="plan-section" class="px-6 pb-6 block">
+            <div class="card p-6 mb-6">
+                <div class="flex gap-3">
+                    <input type="text" id="plan-input" class="input-field flex-grow" placeholder="添加新计划...">
+                    <button id="add-plan-btn" class="btn-primary disabled:opacity-50 disabled:cursor-not-allowed" disabled>
+                        <i data-lucide="plus" class="inline-block mr-2"></i>添加
+                    </button>
+                </div>
+            </div>
+
+            <div class="card p-6 mb-6">
+                <div class="flex items-center mb-4">
+                    <div class="glass-icon mr-3">
+                        <i data-lucide="clock" class="text-white"></i>
+                    </div>
+                    <h2 class="text-xl font-semibold">未完成的计划</h2>
+                </div>
+                <ul id="pending-plans" class="space-y-3">
+                    <!-- Plan items will be added here -->
+                </ul>
+            </div>
+
+            <div class="card p-6">
+                <div class="flex justify-between items-center mb-4">
+                    <div class="flex items-center">
+                        <div class="glass-icon mr-3">
+                            <i data-lucide="check-circle" class="text-white"></i>
+                        </div>
+                        <h2 class="text-xl font-semibold">已完成的计划</h2>
+                    </div>
+                    <button id="clear-completed-btn" class="btn-ghost text-sm">
+                        <i data-lucide="trash-2" class="inline-block mr-1"></i>清空
+                    </button>
+                </div>
+                <ul id="completed-plans" class="space-y-3">
+                    <!-- Completed plan items will be added here -->
+                </ul>
+            </div>
+        </section>
+
+        <!-- Statistics Section -->
+        <section id="stats-section" class="px-6 pb-6 hidden">
+            <div class="card p-6 mb-6">
+                <h2 class="text-xl font-semibold mb-6">消费统计</h2>
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <div>
+                        <h3 class="text-lg font-medium mb-4">消费分类分布</h3>
+                        <div style="height: 300px;">
+                            <canvas id="category-chart"></canvas>
+                        </div>
+                    </div>
+                    <div>
+                        <h3 class="text-lg font-medium mb-4">月度消费趋势</h3>
+                        <div style="height: 300px;">
+                            <canvas id="monthly-chart"></canvas>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="card p-6">
+                <div class="flex justify-between items-center mb-6">
+                    <h2 class="text-xl font-semibold">数据管理</h2>
+                    <div class="space-x-3">
+                        <button id="export-data-btn" class="btn-secondary">
+                            <i data-lucide="download" class="inline-block mr-2"></i>导出数据
+                        </button>
+                        <button id="import-data-btn" class="btn-secondary">
+                            <i data-lucide="upload" class="inline-block mr-2"></i>导入数据
+                        </button>
+                        <input type="file" id="import-file" accept=".json" class="hidden">
+                    </div>
+                </div>
+                <p class="text-gray-600 dark:text-gray-300">导出您的数据进行备份，或导入之前备份的数据。</p>
+            </div>
+        </section>
+
+        <!-- Budget Section -->
+        <section id="budget-section" class="px-6 pb-6 hidden">
+            <div class="card p-6 mb-6">
+                <div class="flex justify-between items-center mb-6">
+                    <h2 class="text-xl font-semibold">月度预算</h2>
+                    <button id="set-budget-btn" class="btn-primary">
+                        <i data-lucide="settings" class="inline-block mr-2"></i>设置预算
+                    </button>
+                </div>
+                <div id="budget-summary" class="text-center py-8">
+                    <p class="text-gray-600 dark:text-gray-300 mb-4">您还没有设置月度预算</p>
+                    <button id="create-budget-btn" class="btn-primary">创建预算</button>
+                </div>
+            </div>
+
+            <div class="card p-6">
+                <h2 class="text-xl font-semibold mb-6">成就系统</h2>
+                <div id="achievements" class="grid grid-cols-2 md:grid-cols-4 gap-4">
+                    <!-- Achievements will be dynamically inserted here -->
+                </div>
+            </div>
+        </section>
+
+        <!-- Finance Record Section -->
+        <section id="finance-section" class="px-6 pb-6 hidden">
+            <div class="card p-6 mb-6">
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
+                    <div>
+                        <label for="amount-input" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">金额</label>
+                        <input type="number" id="amount-input" class="input-field w-full" placeholder="0.00" step="0.01">
+                    </div>
+                    <div>
+                        <label for="category-select" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">类别</label>
+                        <div class="relative">
+                            <select id="category-select" class="input-field w-full appearance-none pr-10">
+                                <option value="food">餐饮</option>
+                                <option value="transport">交通</option>
+                                <option value="shopping">购物</option>
+                                <option value="entertainment">娱乐</option>
+                                <option value="other">其他</option>
+                            </select>
+                            <div class="absolute inset-y-0 right-0 flex items-center px-3 pointer-events-none">
+                                <i data-lucide="chevron-down" class="w-5 h-5 text-gray-400"></i>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="mb-4">
+                    <label for="note-input" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">备注</label>
+                    <input type="text" id="note-input" class="input-field w-full" placeholder="添加备注...">
+                </div>
+                <button id="add-finance-btn" class="btn-primary w-full disabled:opacity-50 disabled:cursor-not-allowed" disabled>
+                    <i data-lucide="plus-circle" class="inline-block mr-2"></i>添加记录
+                </button>
+            </div>
+
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-6">
+                <div class="stat-card p-5 text-center">
+                    <div class="glass-icon mx-auto mb-3">
+                        <i data-lucide="calendar" class="text-white"></i>
+                    </div>
+                    <h3 class="text-sm font-medium text-white/80 mb-1">今日消费</h3>
+                    <p id="daily-total" class="text-2xl font-bold text-white">RM0.00</p>
+                </div>
+                <div class="stat-card p-5 text-center">
+                    <div class="glass-icon mx-auto mb-3">
+                        <i data-lucide="calendar-weekend" class="text-white"></i>
+                    </div>
+                    <h3 class="text-sm font-medium text-white/80 mb-1">本周消费</h3>
+                    <p id="weekly-total" class="text-2xl font-bold text-white">RM0.00</p>
+                </div>
+                <div class="stat-card p-5 text-center">
+                    <div class="glass-icon mx-auto mb-3">
+                        <i data-lucide="calendar-days" class="text-white"></i>
+                    </div>
+                    <h3 class="text-sm font-medium text-white/80 mb-1">本月消费</h3>
+                    <p id="monthly-total" class="text-2xl font-bold text-white">RM0.00</p>
+                </div>
+            </div>
+
+            <div class="card p-6">
+                <div class="flex items-center mb-4">
+                    <div class="glass-icon mr-3">
+                        <i data-lucide="list-checks" class="text-white"></i>
+                    </div>
+                    <h2 class="text-xl font-semibold">消费记录</h2>
+                </div>
+                <ul id="finance-records" class="space-y-3">
+                    <!-- Finance records will be added here -->
+                </ul>
+            </div>
+        </section>
+
+        <!-- Statistics Section -->
+        <section id="stats-section" class="px-6 pb-6 hidden">
+            <div class="card p-6 mb-6">
+                <h2 class="text-xl font-semibold mb-6">消费统计</h2>
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <div>
+                        <h3 class="text-lg font-medium mb-4">消费分类分布</h3>
+                        <div style="height: 300px;">
+                            <canvas id="category-chart"></canvas>
+                        </div>
+                    </div>
+                    <div>
+                        <h3 class="text-lg font-medium mb-4">月度消费趋势</h3>
+                        <div style="height: 300px;">
+                            <canvas id="monthly-chart"></canvas>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="card p-6">
+                <div class="flex justify-between items-center mb-6">
+                    <h2 class="text-xl font-semibold">数据管理</h2>
+                    <div class="space-x-3">
+                        <button id="export-data-btn" class="btn-secondary">
+                            <i data-lucide="download" class="inline-block mr-2"></i>导出数据
+                        </button>
+                        <button id="import-data-btn" class="btn-secondary">
+                            <i data-lucide="upload" class="inline-block mr-2"></i>导入数据
+                        </button>
+                        <input type="file" id="import-file" accept=".json" class="hidden">
+                    </div>
+                </div>
+                <p class="text-gray-600 dark:text-gray-300">导出您的数据进行备份，或导入之前备份的数据。</p>
+            </div>
+        </section>
+
+        <!-- Budget Section -->
+        <section id="budget-section" class="px-6 pb-6 hidden">
+            <div class="card p-6 mb-6">
+                <div class="flex justify-between items-center mb-6">
+                    <h2 class="text-xl font-semibold">月度预算</h2>
+                    <button id="set-budget-btn" class="btn-primary">
+                        <i data-lucide="settings" class="inline-block mr-2"></i>设置预算
+                    </button>
+                </div>
+                <div id="budget-summary" class="text-center py-8">
+                    <p class="text-gray-600 dark:text-gray-300 mb-4">您还没有设置月度预算</p>
+                    <button id="create-budget-btn" class="btn-primary">创建预算</button>
+                </div>
+            </div>
+
+            <div class="card p-6">
+                <h2 class="text-xl font-semibold mb-6">成就系统</h2>
+                <div id="achievements" class="grid grid-cols-2 md:grid-cols-4 gap-4">
+                    <!-- Achievements will be dynamically inserted here -->
+                </div>
+            </div>
+        </section>
+    </div>
+
+    <!-- Modals -->
+    <div id="confirm-modal" class="modal-backdrop hidden">
+        <div class="modal-content">
+            <div class="flex items-center mb-4">
+                <div class="glass-icon mr-3">
+                    <i data-lucide="check-circle-2" class="text-white"></i>
+                </div>
+                <h3 class="text-lg font-semibold">确认完成计划？</h3>
+            </div>
+            <p id="confirm-plan-text" class="mb-6 text-gray-600 dark:text-gray-300"></p>
+            <div class="flex justify-end space-x-3">
+                <button id="cancel-confirm-btn" class="btn-ghost">取消</button>
+                <button id="submit-confirm-btn" class="btn-secondary">确认</button>
+            </div>
+        </div>
+    </div>
+
+    <div id="lingbao-modal" class="modal-backdrop hidden">
+        <div class="modal-content text-center">
+            <div id="lingbao-image" class="lingbao-animation mb-6">
+                <img src="https://img.icons8.com/color/120/000000/trophy.png" alt="Lingbao" class="mx-auto">
+            </div>
+            <p id="lingbao-message" class="text-xl font-semibold mb-6 text-gray-800 dark:text-white">太棒啦！灵宝为你点赞～</p>
+            <button id="close-lingbao-btn" class="btn-primary">
+                <i data-lucide="heart" class="inline-block mr-2"></i>谢谢灵宝～
+            </button>
+        </div>
+    </div>
+
+    <div id="finance-modal" class="modal-backdrop hidden">
+        <div class="modal-content">
+            <div class="flex items-center mb-4">
+                <div class="glass-icon mr-3">
+                    <i data-lucide="edit-3" class="text-white"></i>
+                </div>
+                <h3 id="finance-modal-title" class="text-lg font-semibold">编辑记录</h3>
+            </div>
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
+                <div>
+                    <label for="edit-amount-input" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">金额</label>
+                    <input type="number" id="edit-amount-input" class="input-field w-full" step="0.01">
+                </div>
+                <div>
+                    <label for="edit-category-select" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">类别</label>
+                    <select id="edit-category-select" class="input-field w-full">
+                        <option value="food">餐饮</option>
+                        <option value="transport">交通</option>
+                        <option value="shopping">购物</option>
+                        <option value="entertainment">娱乐</option>
+                        <option value="other">其他</option>
+                    </select>
+                </div>
+            </div>
+            <div class="mb-6">
+                <label for="edit-note-input" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">备注</label>
+                <input type="text" id="edit-note-input" class="input-field w-full">
+            </div>
+            <div class="flex justify-end space-x-3">
+                <button id="cancel-finance-btn" class="btn-ghost">取消</button>
+                <button id="save-finance-btn" class="btn-secondary">保存</button>
+                <button id="delete-finance-btn" class="btn-danger">删除</button>
+            </div>
+        </div>
+    </div>
+    
+    <div id="toast" class="toast"></div>
+
+        <!-- Anniversary Section -->
+        <!-- Add New Countdown Modal -->
+        <div id="countdown-modal" class="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50 hidden">
+            <div class="bg-white dark:bg-gray-800 rounded-2xl shadow-2xl border border-gray-200 dark:border-gray-700 w-full max-w-md mx-4 transform transition-all duration-300 scale-95 opacity-0" id="modal-content">
+                <div class="p-6">
+                    <div class="flex justify-between items-center mb-6">
+                        <h3 class="text-xl font-bold text-gray-800 dark:text-white">添加新倒数日</h3>
+                        <button id="close-modal-btn" class="text-gray-400 hover:text-gray-600 dark:hover:text-gray-200 transition-colors">
+                            <i data-lucide="x" class="w-6 h-6"></i>
+                        </button>
+                    </div>
+                    <div class="space-y-5">
+                        <div>
+                            <label for="anniversary-title" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">事件名称</label>
+                            <input type="text" id="anniversary-title" class="input-field w-full" placeholder="比如：发工资、和小明在一起的日子...">
+                        </div>
+                        <div>
+                            <label for="anniversary-date" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">目标日期</label>
+                            <input type="date" id="anniversary-date" class="input-field w-full">
+                        </div>
+                        <div>
+                            <label for="anniversary-category" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">分类</label>
+                            <select id="anniversary-category" class="input-field w-full">
+                                <option value="default">默认</option>
+                                <option value="finance">财务</option>
+                                <option value="relationship">感情</option>
+                                <option value="birthday">生日</option>
+                                <option value="holiday">节日</option>
+                                <option value="work">工作</option>
+                                <option value="other">其他</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div class="mt-6 space-y-3">
+                        <button id="add-anniversary-btn" class="btn-primary w-full">
+                            <i data-lucide="plus" class="inline-block mr-2"></i>添加倒数日
+                        </button>
+                        <button id="cancel-add-btn" class="w-full py-3 px-4 border border-gray-300 dark:border-gray-600 rounded-lg text-gray-700 dark:text-gray-300 font-medium hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors">
+                            取消
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+    <script>
+        // Data storage
+        let plans = JSON.parse(localStorage.getItem('plans')) || [];
+        let financeRecords = JSON.parse(localStorage.getItem('financeRecords')) || [];
+        let budget = JSON.parse(localStorage.getItem('budget')) || null;
+        let achievements = JSON.parse(localStorage.getItem('achievements')) || {
+            firstPlan: false,
+            fivePlans: false,
+            firstFinance: false,
+            tenFinances: false,
+            budgetSet: false,
+            budgetKept: false
+        };
+        let anniversaries = JSON.parse(localStorage.getItem('anniversaries')) || [];
+        let currentEditId = null;
+        let planToComplete = null;
+
+        // DOM Elements
+        const planTab = document.getElementById('plan-tab');
+        const financeTab = document.getElementById('finance-tab');
+        const statsTab = document.getElementById('stats-tab');
+        const budgetTab = document.getElementById('budget-tab');
+        const planSection = document.getElementById('plan-section');
+        const financeSection = document.getElementById('finance-section');
+        const statsSection = document.getElementById('stats-section');
+        const budgetSection = document.getElementById('budget-section');
+        const anniversarySection = document.getElementById('anniversary-section');
+        const planInput = document.getElementById('plan-input');
+        const addPlanBtn = document.getElementById('add-plan-btn');
+        const pendingPlansUl = document.getElementById('pending-plans');
+        const completedPlansUl = document.getElementById('completed-plans');
+        const clearCompletedBtn = document.getElementById('clear-completed-btn');
+        const amountInput = document.getElementById('amount-input');
+        const categorySelect = document.getElementById('category-select');
+        const noteInput = document.getElementById('note-input');
+        const addFinanceBtn = document.getElementById('add-finance-btn');
+        const financeRecordsUl = document.getElementById('finance-records');
+        const dailyTotalEl = document.getElementById('daily-total');
+        const weeklyTotalEl = document.getElementById('weekly-total');
+        const monthlyTotalEl = document.getElementById('monthly-total');
+        const confirmModal = document.getElementById('confirm-modal');
+        const confirmPlanText = document.getElementById('confirm-plan-text');
+        const cancelConfirmBtn = document.getElementById('cancel-confirm-btn');
+        const submitConfirmBtn = document.getElementById('submit-confirm-btn');
+        const lingbaoModal = document.getElementById('lingbao-modal');
+        const lingbaoMessage = document.getElementById('lingbao-message');
+        const closeLingbaoBtn = document.getElementById('close-lingbao-btn');
+        const financeModal = document.getElementById('finance-modal');
+        const financeModalTitle = document.getElementById('finance-modal-title');
+        const editAmountInput = document.getElementById('edit-amount-input');
+        const editCategorySelect = document.getElementById('edit-category-select');
+        const editNoteInput = document.getElementById('edit-note-input');
+        const cancelFinanceBtn = document.getElementById('cancel-finance-btn');
+        const saveFinanceBtn = document.getElementById('save-finance-btn');
+        const deleteFinanceBtn = document.getElementById('delete-finance-btn');
+        const themeToggle = document.getElementById('theme-toggle');
+        const toast = document.getElementById('toast');
+
+        // Statistics and Budget Elements
+        const categoryChart = document.getElementById('category-chart');
+        const monthlyChart = document.getElementById('monthly-chart');
+        const exportDataBtn = document.getElementById('export-data-btn');
+        const importDataBtn = document.getElementById('import-data-btn');
+        const importFile = document.getElementById('import-file');
+        const setBudgetBtn = document.getElementById('set-budget-btn');
+        const createBudgetBtn = document.getElementById('create-budget-btn');
+        const budgetSummary = document.getElementById('budget-summary');
+        const achievementsList = document.getElementById('achievements');
+
+        // Anniversary Elements
+        const anniversaryTitle = document.getElementById('anniversary-title');
+        const anniversaryDate = document.getElementById('anniversary-date');
+        const addAnniversaryBtn = document.getElementById('add-anniversary-btn');
+        const anniversariesList = document.getElementById('anniversaries-list');
+        const countdownModal = document.getElementById('countdown-modal');
+        const modalContent = document.getElementById('modal-content');
+        const quickAddBtn = document.getElementById('quick-add-btn');
+        const closeModalBtn = document.getElementById('close-modal-btn');
+        const cancelAddBtn = document.getElementById('cancel-add-btn');
+        const upcomingCountEl = document.getElementById('upcoming-count');
+        const pastCountEl = document.getElementById('past-count');
+        const anniversaryCategory = document.getElementById('anniversary-category');
+
+        // Helper Functions
+        function saveToLocalStorage() {
+            localStorage.setItem('plans', JSON.stringify(plans));
+            localStorage.setItem('financeRecords', JSON.stringify(financeRecords));
+            localStorage.setItem('budget', JSON.stringify(budget));
+            localStorage.setItem('achievements', JSON.stringify(achievements));
+            localStorage.setItem('anniversaries', JSON.stringify(anniversaries));
+            localStorage.setItem('userPreferences', JSON.stringify(userPreferences));
+        }
+
+        // User Preferences
+        let userPreferences = JSON.parse(localStorage.getItem('userPreferences')) || {
+            theme: 'default',
+            notifications: true,
+            assistantEnabled: true
+        };
+
+        function showToast(message) {
+            toast.textContent = message;
+            toast.classList.add('show');
+            setTimeout(() => {
+                toast.classList.remove('show');
+            }, 3000);
+        }
+
+        function formatDate(dateString) {
+            const date = new Date(dateString);
+            return date.toLocaleString('zh-CN', { 
+                year: 'numeric', 
+                month: '2-digit', 
+                day: '2-digit',
+                hour: '2-digit',
+                minute: '2-digit'
+            });
+        }
+
+        function getCategoryIcon(category) {
+            const icons = {
+                food: 'utensils',
+                transport: 'bus',
+                shopping: 'shopping-cart',
+                entertainment: 'film',
+                other: 'more-horizontal'
+            };
+            return icons[category] || 'more-horizontal';
+        }
+
+        function getRandomLingbaoMessage() {
+            const messages = [
+                "太棒啦！灵宝为你点赞～",
+                "了不起的成就！继续保持～",
+                "灵宝说你是最棒的！",
+                "完成计划的你真可爱～",
+                "为你打call！",
+                "灵宝以你为荣！"
+            ];
+            return messages[Math.floor(Math.random() * messages.length)];
+        }
+
+        // Plan Functions
+        function renderPlans() {
+            pendingPlansUl.innerHTML = '';
+            completedPlansUl.innerHTML = '';
+
+            const pendingPlans = plans.filter(plan => !plan.completed);
+            const completedPlans = plans.filter(plan => plan.completed);
+
+            pendingPlans.forEach(plan => {
+                const li = document.createElement('li');
+                li.className = 'card p-4 rounded-lg flex justify-between items-center';
+                li.innerHTML = `
+                    <span class="plan-text flex-grow">${plan.text}</span>
+                    <div>
+                        <button class="complete-plan-btn text-green-500 hover:text-green-700 mr-2" data-id="${plan.id}">
+                            <i data-lucide="check-circle-2"></i>
+                        </button>
+                        <button class="delete-plan-btn text-red-500 hover:text-red-700" data-id="${plan.id}">
+                            <i data-lucide="trash-2"></i>
+                        </button>
+                    </div>
+                `;
+                pendingPlansUl.appendChild(li);
+            });
+
+            completedPlans.forEach(plan => {
+                const li = document.createElement('li');
+                li.className = 'card p-4 rounded-lg flex justify-between items-center plan-item-completed';
+                li.innerHTML = `
+                    <span class="plan-text flex-grow">${plan.text}</span>
+                    <span class="text-sm text-gray-500">${formatDate(plan.completedAt)}</span>
+                `;
+                completedPlansUl.appendChild(li);
+            });
+
+            lucide.createIcons();
+        }
+
+        function addPlan() {
+            const text = planInput.value.trim();
+            if (text) {
+                const newPlan = {
+                    id: Date.now().toString(),
+                    text,
+                    completed: false,
+                    createdAt: new Date().toISOString()
+                };
+                plans.push(newPlan);
+                saveToLocalStorage();
+                renderPlans();
+                planInput.value = '';
+                addPlanBtn.disabled = true;
+                showToast('计划添加成功！');
+                
+                // Check achievements
+                checkAchievements();
+            }
+        }
+
+        function deletePlan(id) {
+            plans = plans.filter(plan => plan.id !== id);
+            saveToLocalStorage();
+            renderPlans();
+            showToast('计划已删除');
+        }
+
+        function confirmCompletePlan(id) {
+            planToComplete = id;
+            const plan = plans.find(p => p.id === id);
+            if (plan) {
+                confirmPlanText.textContent = plan.text;
+                confirmModal.style.display = 'flex';
+            }
+        }
+
+        function completePlan() {
+            if (planToComplete) {
+                const plan = plans.find(p => p.id === planToComplete);
+                if (plan) {
+                    plan.completed = true;
+                    plan.completedAt = new Date().toISOString();
+                    saveToLocalStorage();
+                    renderPlans();
+                    confirmModal.style.display = 'none';
+                    
+                    // Show Lingbao modal
+                    lingbaoMessage.textContent = getRandomLingbaoMessage();
+                    lingbaoModal.style.display = 'flex';
+                }
+            }
+        }
+
+        function clearCompletedPlans() {
+            plans = plans.filter(plan => !plan.completed);
+            saveToLocalStorage();
+            renderPlans();
+            showToast('已清空完成的计划');
+        }
+
+        // Finance Functions
+        function renderFinanceRecords() {
+            financeRecordsUl.innerHTML = '';
+
+            financeRecords.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt)).forEach(record => {
+                const li = document.createElement('li');
+                li.className = 'card p-4 rounded-lg';
+                const categoryIcon = getCategoryIcon(record.category);
+                li.innerHTML = `
+                    <div class="flex justify-between items-start">
+                        <div class="flex items-center">
+                            <div class="category-icon category-${record.category}">
+                                <i data-lucide="${categoryIcon}"></i>
+                            </div>
+                            <div>
+                                <p class="font-semibold">RM${record.amount.toFixed(2)}</p>
+                                <p class="text-sm text-gray-500">${record.note || ''}</p>
+                            </div>
+                        </div>
+                        <div class="text-right">
+                            <p class="text-sm text-gray-500">${formatDate(record.createdAt)}</p>
+                            <button class="edit-finance-btn text-blue-500 hover:text-blue-700 text-sm mt-1" data-id="${record.id}">
+                                编辑
+                            </button>
+                        </div>
+                    </div>
+                `;
+                financeRecordsUl.appendChild(li);
+            });
+
+            lucide.createIcons();
+        }
+
+        function updateTotals() {
+            const now = new Date();
+            const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+            const startOfWeek = new Date(today);
+            startOfWeek.setDate(today.getDate() - today.getDay());
+            const startOfMonth = new Date(now.getFullYear(), now.getMonth(), 1);
+
+            const dailyTotal = financeRecords
+                .filter(record => new Date(record.createdAt) >= today)
+                .reduce((sum, record) => sum + record.amount, 0);
+
+            const weeklyTotal = financeRecords
+                .filter(record => new Date(record.createdAt) >= startOfWeek)
+                .reduce((sum, record) => sum + record.amount, 0);
+
+            const monthlyTotal = financeRecords
+                .filter(record => new Date(record.createdAt) >= startOfMonth)
+                .reduce((sum, record) => sum + record.amount, 0);
+
+            dailyTotalEl.textContent = `RM${dailyTotal.toFixed(2)}`;
+            weeklyTotalEl.textContent = `RM${weeklyTotal.toFixed(2)}`;
+            monthlyTotalEl.textContent = `RM${monthlyTotal.toFixed(2)}`;
+        }
+
+        function addFinanceRecord() {
+            const amount = parseFloat(amountInput.value);
+            const category = categorySelect.value;
+            const note = noteInput.value.trim();
+
+            if (amount && amount > 0) {
+                const newRecord = {
+                    id: Date.now().toString(),
+                    amount,
+                    category,
+                    note,
+                    createdAt: new Date().toISOString()
+                };
+                financeRecords.push(newRecord);
+                saveToLocalStorage();
+                renderFinanceRecords();
+                updateTotals();
+                
+                // Reset inputs
+                amountInput.value = '';
+                noteInput.value = '';
+                addFinanceBtn.disabled = true;
+                
+                showToast('消费记录添加成功！');
+                
+                // Check achievements
+                checkAchievements();
+            }
+        }
+
+        function openEditFinanceModal(id) {
+            const record = financeRecords.find(r => r.id === id);
+            if (record) {
+                console.log('Opening edit modal for record:', id);
+                currentEditId = id;
+                financeModalTitle.textContent = '编辑记录';
+                editAmountInput.value = record.amount;
+                editCategorySelect.value = record.category;
+                editNoteInput.value = record.note || '';
+                financeModal.style.display = 'flex';
+            }
+        }
+
+        function saveFinanceRecord() {
+            if (currentEditId) {
+                const amount = parseFloat(editAmountInput.value);
+                const category = editCategorySelect.value;
+                const note = editNoteInput.value.trim();
+
+                if (amount && amount > 0) {
+                    const recordIndex = financeRecords.findIndex(r => r.id === currentEditId);
+                    if (recordIndex !== -1) {
+                        financeRecords[recordIndex] = {
+                            ...financeRecords[recordIndex],
+                            amount,
+                            category,
+                            note
+                        };
+                        saveToLocalStorage();
+                        renderFinanceRecords();
+                        updateTotals();
+                        financeModal.classList.add('hidden');
+                        showToast('记录已更新');
+                    }
+                }
+            }
+        }
+
+        function deleteFinanceRecord() {
+            if (currentEditId) {
+                financeRecords = financeRecords.filter(r => r.id !== currentEditId);
+                saveToLocalStorage();
+                renderFinanceRecords();
+                updateTotals();
+                financeModal.classList.add('hidden');
+                showToast('记录已删除');
+            }
+        }
+
+        // Countdown Modal Event Listeners
+        quickAddBtn.addEventListener('click', openModal);
+        closeModalBtn.addEventListener('click', closeModal);
+        cancelAddBtn.addEventListener('click', closeModal);
+        countdownModal.addEventListener('click', (e) => {
+            if (e.target === countdownModal) {
+                closeModal();
+            }
+        });
+
+        // Event Listeners
+        planTab.addEventListener('click', () => {
+            planTab.classList.add('active');
+            financeTab.classList.remove('active');
+            planSection.classList.remove('hidden');
+            financeSection.classList.add('hidden');
+        });
+
+        financeTab.addEventListener('click', () => {
+            financeTab.classList.add('active');
+            planTab.classList.remove('active');
+            statsTab.classList.remove('active');
+            budgetTab.classList.remove('active');
+            financeSection.classList.remove('hidden');
+            planSection.classList.add('hidden');
+            statsSection.classList.add('hidden');
+            budgetSection.classList.add('hidden');
+            updateTotals();
+        });
+
+        statsTab.addEventListener('click', () => {
+            statsTab.classList.add('active');
+            planTab.classList.remove('active');
+            financeTab.classList.remove('active');
+            budgetTab.classList.remove('active');
+            statsSection.classList.remove('hidden');
+            planSection.classList.add('hidden');
+            financeSection.classList.add('hidden');
+            budgetSection.classList.add('hidden');
+            updateCharts();
+        });
+
+        budgetTab.addEventListener('click', () => {
+            budgetTab.classList.add('active');
+            planTab.classList.remove('active');
+            financeTab.classList.remove('active');
+            statsTab.classList.remove('active');
+            budgetSection.classList.remove('hidden');
+            planSection.classList.add('hidden');
+            financeSection.classList.add('hidden');
+            statsSection.classList.add('hidden');
+            updateBudgetDisplay();
+            renderAchievements();
+        });
+
+        planInput.addEventListener('input', () => {
+            addPlanBtn.disabled = planInput.value.trim() === '';
+        });
+
+        addPlanBtn.addEventListener('click', addPlan);
+
+        planInput.addEventListener('keypress', (e) => {
+            if (e.key === 'Enter' && !addPlanBtn.disabled) {
+                addPlan();
+            }
+        });
+
+        pendingPlansUl.addEventListener('click', (e) => {
+            const completeBtn = e.target.closest('.complete-plan-btn');
+            const deleteBtn = e.target.closest('.delete-plan-btn');
+
+            if (completeBtn) {
+                const id = completeBtn.dataset.id;
+                confirmCompletePlan(id);
+            }
+
+            if (deleteBtn) {
+                const id = deleteBtn.dataset.id;
+                deletePlan(id);
+            }
+        });
+
+        clearCompletedBtn.addEventListener('click', clearCompletedPlans);
+
+        amountInput.addEventListener('input', () => {
+            addFinanceBtn.disabled = !amountInput.value || parseFloat(amountInput.value) <= 0;
+        });
+
+        addFinanceBtn.addEventListener('click', addFinanceRecord);
+
+        financeRecordsUl.addEventListener('click', (e) => {
+            const editBtn = e.target.closest('.edit-finance-btn');
+            if (editBtn) {
+                const id = editBtn.dataset.id;
+                openEditFinanceModal(id);
+            }
+        });
+
+        cancelConfirmBtn.addEventListener('click', () => {
+            confirmModal.style.display = 'none';
+            planToComplete = null;
+        });
+
+        submitConfirmBtn.addEventListener('click', completePlan);
+
+        closeLingbaoBtn.addEventListener('click', () => {
+            lingbaoModal.style.display = 'none';
+        });
+
+        cancelFinanceBtn.addEventListener('click', () => {
+            console.log('Cancel button clicked');
+            financeModal.style.display = 'none';
+            currentEditId = null;
+        });
+
+        saveFinanceBtn.addEventListener('click', () => {
+            console.log('Save button clicked');
+            saveFinanceRecord();
+        });
+
+        deleteFinanceBtn.addEventListener('click', () => {
+            console.log('Delete button clicked');
+            deleteFinanceRecord();
+        });
+
+        themeToggle.addEventListener('click', () => {
+            document.documentElement.classList.toggle('dark');
+            localStorage.setItem('theme', document.documentElement.classList.contains('dark') ? 'dark' : 'light');
+            lucide.createIcons();
+        });
+
+        // New features functions
+        function updateCharts() {
+            updateCategoryChart();
+            updateMonthlyChart();
+        }
+
+        function updateCategoryChart() {
+            const categoryData = {};
+            financeRecords.forEach(record => {
+                categoryData[record.category] = (categoryData[record.category] || 0) + record.amount;
+            });
+
+            const ctx = document.getElementById('category-chart').getContext('2d');
+            if (window.categoryChartInstance) {
+                window.categoryChartInstance.destroy();
+            }
+
+            window.categoryChartInstance = new Chart(ctx, {
+                type: 'doughnut',
+                data: {
+                    labels: Object.keys(categoryData).map(key => getCategoryName(key)),
+                    datasets: [{
+                        data: Object.values(categoryData),
+                        backgroundColor: [
+                            '#3B82F6', '#EC4899', '#8B5CF6', '#10B981', '#F59E0B'
+                        ]
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false
+                }
+            });
+        }
+
+        function updateMonthlyChart() {
+            const monthlyData = {};
+            financeRecords.forEach(record => {
+                const date = new Date(record.createdAt);
+                const monthKey = `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}`;
+                monthlyData[monthKey] = (monthlyData[monthKey] || 0) + record.amount;
+            });
+
+            const ctx = document.getElementById('monthly-chart').getContext('2d');
+            if (window.monthlyChartInstance) {
+                window.monthlyChartInstance.destroy();
+            }
+
+            window.monthlyChartInstance = new Chart(ctx, {
+                type: 'line',
+                data: {
+                    labels: Object.keys(monthlyData),
+                    datasets: [{
+                        label: '月度消费',
+                        data: Object.values(monthlyData),
+                        borderColor: '#3B82F6',
+                        backgroundColor: 'rgba(59, 130, 246, 0.1)',
+                        tension: 0.4
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    scales: {
+                        y: {
+                            beginAtZero: true
+                        }
+                    }
+                }
+            });
+        }
+
+        function updateBudgetDisplay() {
+            if (budget) {
+                const currentMonth = new Date().toISOString().slice(0, 7);
+                const monthExpenses = financeRecords
+                    .filter(record => record.createdAt.startsWith(currentMonth))
+                    .reduce((sum, record) => sum + record.amount, 0);
+                
+                const percentage = (monthExpenses / budget.amount) * 100;
+                
+                budgetSummary.innerHTML = `
+                    <div class="mb-6">
+                        <h3 class="text-lg font-semibold mb-2">本月预算: RM${budget.amount.toFixed(2)}</h3>
+                        <p class="text-gray-600 dark:text-gray-300 mb-4">已消费: RM${monthExpenses.toFixed(2)} (${percentage.toFixed(1)}%)</p>
+                        <div class="w-full bg-gray-200 dark:bg-gray-700 rounded-full h-4">
+                            <div class="bg-${percentage > 100 ? 'red' : 'green'}-500 h-4 rounded-full" style="width: ${Math.min(percentage, 100)}%"></div>
+                        </div>
+                    </div>
+                    <button id="edit-budget-btn" class="btn-secondary">
+                        <i data-lucide="edit" class="inline-block mr-2"></i>编辑预算
+                    </button>
+                `;
+                
+                document.getElementById('edit-budget-btn').addEventListener('click', () => {
+                    setBudget();
+                });
+            }
+        }
+
+        function setBudget() {
+            const amount = prompt('请输入月度预算金额:');
+            if (amount && parseFloat(amount) > 0) {
+                budget = {
+                    amount: parseFloat(amount),
+                    createdAt: new Date().toISOString()
+                };
+                saveToLocalStorage();
+                updateBudgetDisplay();
+                checkAchievements();
+                showToast('预算设置成功！');
+            }
+        }
+
+        function checkAchievements() {
+            let hasNewAchievement = false;
+            
+            // First plan
+            if (!achievements.firstPlan && plans.length > 0) {
+                achievements.firstPlan = true;
+                hasNewAchievement = true;
+            }
+            
+            // Five plans
+            if (!achievements.fivePlans && plans.length >= 5) {
+                achievements.fivePlans = true;
+                hasNewAchievement = true;
+            }
+            
+            // First finance record
+            if (!achievements.firstFinance && financeRecords.length > 0) {
+                achievements.firstFinance = true;
+                hasNewAchievement = true;
+            }
+            
+            // Ten finance records
+            if (!achievements.tenFinances && financeRecords.length >= 10) {
+                achievements.tenFinances = true;
+                hasNewAchievement = true;
+            }
+            
+            // Budget set
+            if (!achievements.budgetSet && budget) {
+                achievements.budgetSet = true;
+                hasNewAchievement = true;
+            }
+            
+            if (hasNewAchievement) {
+                saveToLocalStorage();
+                renderAchievements();
+                showToast('恭喜！您获得了新成就！');
+            }
+        }
+
+        function renderAchievements() {
+            if (!achievementsList) return;
+            
+            const achievementData = [
+                { id: 'firstPlan', name: '初次计划', description: '创建第一个计划', icon: 'clipboard-list', tier: 'bronze' },
+                { id: 'fivePlans', name: '计划达人', description: '创建5个计划', icon: 'list-checks', tier: 'bronze' },
+                { id: 'firstFinance', name: '记账开始', description: '添加第一条消费记录', icon: 'wallet', tier: 'bronze' },
+                { id: 'tenFinances', name: '消费专家', description: '添加10条消费记录', icon: 'banknote', tier: 'bronze' },
+                { id: 'budgetSet', name: '预算规划', description: '设置月度预算', icon: 'target', tier: 'bronze' },
+                { id: 'budgetKept', name: '预算达人', description: '本月消费未超预算', icon: 'award', tier: 'silver' },
+                { id: 'weekStreak', name: '坚持一周', description: '连续记账7天', icon: 'calendar-clock', tier: 'bronze' },
+                { id: 'monthStreak', name: '月度达人', description: '连续记账30天', icon: 'calendar', tier: 'silver' },
+                { id: 'hundredDays', name: '百日坚持', description: '连续记账100天', icon: 'trophy', tier: 'gold' }
+            ];
+            
+            achievementsList.innerHTML = achievementData.map(achievement => `
+                <div class="achievement-card p-4 rounded-lg text-center ${achievements[achievement.id] ? `bg-${achievement.tier}-50 dark:bg-${achievement.tier}-900/30 border border-${achievement.tier}-200 dark:border-${achievement.tier}-800/50` : 'bg-gray-100 dark:bg-gray-800 opacity-50'}">
+                    <div class="relative mx-auto mb-3">
+                        ${achievements[achievement.id] ? `
+                            <div class="absolute inset-0 bg-gradient-to-r from-${achievement.tier}-400 to-${achievement.tier}-600 rounded-full animate-pulse opacity-20"></div>
+                        ` : ''}
+                        <div class="relative mx-auto mb-3">
+                            <i data-lucide="${achievement.icon}" class="w-8 h-8 ${achievements[achievement.id] ? `text-${achievement.tier}-600 dark:text-${achievement.tier}-400` : 'text-gray-400'}"></i>
+                        </div>
+                    </div>
+                    <h4 class="font-semibold mb-1">${achievement.name}</h4>
+                    <p class="text-sm text-gray-600 dark:text-gray-300 mb-2">${achievement.description}</p>
+                    ${achievements[achievement.id] ? `
+                        <span class="achievement-badge ${achievement.tier}">${achievement.tier === 'bronze' ? '铜级' : achievement.tier === 'silver' ? '银级' : '金级'}</span>
+                    ` : ''}
+                </div>
+            `).join('');
+            
+            lucide.createIcons();
+        }
+
+        // Export/Import functionality
+        exportDataBtn.addEventListener('click', () => {
+            const data = {
+                plans,
+                financeRecords,
+                budget,
+                achievements,
+                exportDate: new Date().toISOString()
+            };
+            
+            const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = `finance-backup-${new Date().toISOString().slice(0, 10)}.json`;
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+            URL.revokeObjectURL(url);
+        });
+
+        importDataBtn.addEventListener('click', () => {
+            importFile.click();
+        });
+
+        importFile.addEventListener('change', (e) => {
+            const file = e.target.files[0];
+            if (file) {
+                const reader = new FileReader();
+                reader.onload = (e) => {
+                    try {
+                        const data = JSON.parse(e.target.result);
+                        if (data.plans) plans = data.plans;
+                        if (data.financeRecords) financeRecords = data.financeRecords;
+                        if (data.budget) budget = data.budget;
+                        if (data.achievements) achievements = data.achievements;
+                        
+                        saveToLocalStorage();
+                        renderPlans();
+                        renderFinanceRecords();
+                        updateTotals();
+                        showToast('数据导入成功！');
+                    } catch (error) {
+                        showToast('数据导入失败，请检查文件格式');
+                    }
+                };
+                reader.readAsText(file);
+            }
+        });
+
+        // Budget button events
+        setBudgetBtn.addEventListener('click', setBudget);
+        createBudgetBtn.addEventListener('click', setBudget);
+
+        // Initialization
+        function init() {
+            // Load theme
+            if (localStorage.getItem('theme') === 'dark' || 
+                (!localStorage.getItem('theme') && window.matchMedia('(prefers-color-scheme: dark)').matches)) {
+                document.documentElement.classList.add('dark');
+            }
+
+            // Ensure plan tab is active on initial load
+            planTab.classList.add('active');
+            financeTab.classList.remove('active');
+            planSection.classList.remove('hidden');
+            financeSection.classList.add('hidden');
+
+            // Ensure all modals are hidden on initial load
+            confirmModal.style.display = 'none';
+            lingbaoModal.style.display = 'none';
+            financeModal.style.display = 'none';
+            
+            // Reset state variables
+            currentEditId = null;
+            planToComplete = null;
+
+            renderPlans();
+            renderFinanceRecords();
+            lucide.createIcons();
+        }
+
+        // Anniversary Functions
+        function renderAnniversaries() {
+            if (!anniversariesList) return;
+            
+            anniversariesList.innerHTML = '';
+            
+            if (anniversaries.length === 0) {
+                anniversariesList.innerHTML = `
+                    <div class="text-center py-16 bg-white/80 dark:bg-gray-800/80 backdrop-blur-lg rounded-2xl shadow-lg border border-gray-200 dark:border-gray-700 mx-auto max-w-2xl">
+                        <div class="relative inline-flex items-center justify-center w-24 h-24 mb-6">
+                            <div class="absolute inset-0 bg-gradient-to-r from-blue-400 to-purple-500 rounded-full animate-pulse opacity-20"></div>
+                            <div class="relative inline-flex items-center justify-center w-20 h-20 rounded-full bg-gradient-to-r from-blue-500 to-purple-600 mb-6">
+                                <i data-lucide="calendar-clock" class="w-10 h-10 text-white"></i>
+                            </div>
+                        </div>
+                        <h3 class="text-2xl font-bold text-gray-800 dark:text-white mb-4">还没有添加任何倒数日</h3>
+                        <p class="text-gray-600 dark:text-gray-300 mb-8 max-w-md mx-auto leading-relaxed">
+                            开始记录您生命中的重要时刻吧！添加发工资日、纪念日或其他特殊日期，我们会自动帮您计算倒计时或已过天数。
+                        </p>
+                        <div class="grid grid-cols-1 sm:grid-cols-3 gap-4 max-w-md mx-auto mb-8">
+                            <div class="bg-gradient-to-br from-pink-50 to-pink-100 dark:from-pink-900/20 dark:to-pink-800/10 rounded-xl p-5 text-center transform transition-all hover:scale-105">
+                                <div class="bg-gradient-to-r from-pink-400 to-pink-500 rounded-full w-10 h-10 flex items-center justify-center mx-auto mb-3">
+                                    <i data-lucide="calendar-heart" class="w-5 h-5 text-white"></i>
+                                </div>
+                                <h4 class="font-semibold text-gray-800 dark:text-white mb-1">生日倒计时</h4>
+                                <p class="text-xs text-gray-500 dark:text-gray-400">期待生日到来</p>
+                            </div>
+                            <div class="bg-gradient-to-br from-purple-50 to-purple-100 dark:from-purple-900/20 dark:to-purple-800/10 rounded-xl p-5 text-center transform transition-all hover:scale-105">
+                                <div class="bg-gradient-to-r from-purple-400 to-purple-500 rounded-full w-10 h-10 flex items-center justify-center mx-auto mb-3">
+                                    <i data-lucide="cake" class="w-5 h-5 text-white"></i>
+                                </div>
+                                <h4 class="font-semibold text-gray-800 dark:text-white mb-1">周年纪念</h4>
+                                <p class="text-xs text-gray-500 dark:text-gray-400">记录美好时光</p>
+                            </div>
+                            <div class="bg-gradient-to-br from-blue-50 to-blue-100 dark:from-blue-900/20 dark:to-blue-800/10 rounded-xl p-5 text-center transform transition-all hover:scale-105">
+                                <div class="bg-gradient-to-r from-blue-400 to-blue-500 rounded-full w-10 h-10 flex items-center justify-center mx-auto mb-3">
+                                    <i data-lucide="calendar" class="w-5 h-5 text-white"></i>
+                                </div>
+                                <h4 class="font-semibold text-gray-800 dark:text-white mb-1">重要日期</h4>
+                                <p class="text-xs text-gray-500 dark:text-gray-400">不要错过精彩</p>
+                            </div>
+                        </div>
+                        <button onclick="document.getElementById('anniversary-title').focus()"
+                            class="bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white font-semibold py-3 px-8 rounded-xl transition-all transform hover:scale-105 hover:shadow-lg">
+                            <i data-lucide="plus-circle" class="w-5 h-5 inline-block mr-2"></i>
+                            添加第一个纪念日
+                        </button>
+                    </div>
+                `;
+                lucide.createIcons();
+                return;
+            }
+            
+            // Sort anniversaries by date (upcoming first, then past)
+            const sortedAnniversaries = [...anniversaries].sort((a, b) => {
+                const dateA = new Date(a.date);
+                const dateB = new Date(b.date);
+                const today = new Date();
+                today.setHours(0, 0, 0, 0);
+                
+                const isAPast = dateA < today;
+                const isBPast = dateB < today;
+                
+                if (isAPast && !isBPast) return 1;
+                if (!isAPast && isBPast) return -1;
+                if (isAPast && isBPast) return dateB - dateA;
+                return dateA - dateB;
+            });
+            
+            sortedAnniversaries.forEach((anniversary, index) => {
+                const today = new Date();
+                today.setHours(0, 0, 0, 0);
+                
+                const targetDate = new Date(anniversary.date);
+                targetDate.setHours(0, 0, 0, 0);
+                
+                const diffTime = targetDate - today;
+                const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+                
+                const isPast = diffDays < 0;
+                const displayDays = Math.abs(diffDays);
+                
+                // Get category info
+                const categoryInfo = getCategoryInfo(anniversary.category);
+                
+                // Choose gradient based on status and category
+                const gradientClass = isPast 
+                    ? categoryInfo.pastGradient 
+                    : categoryInfo.gradient;
+                
+                const statusText = isPast ? '已过' : '倒计时';
+                const statusIcon = isPast ? 'check-circle' : 'clock';
+                
+                const li = document.createElement('div');
+                li.className = `bg-white/90 dark:bg-gray-800/90 backdrop-blur-md rounded-2xl shadow-lg border border-gray-200 dark:border-gray-700 overflow-hidden transform transition-all duration-300 hover:scale-[1.02] hover:shadow-xl`;
+                
+                li.innerHTML = `
+                    <!-- Color Bar -->
+                    <div class="h-2 bg-gradient-to-r ${gradientClass}"></div>
+                    
+                    <!-- Content -->
+                    <div class="p-6">
+                        <!-- Header -->
+                        <div class="flex justify-between items-start mb-6">
+                            <div class="flex-1">
+                                <div class="flex items-center mb-2">
+                                    <div class="bg-gradient-to-r ${gradientClass} p-2 rounded-lg mr-3">
+                                        <i data-lucide="${categoryInfo.icon}" class="w-4 h-4 text-white"></i>
+                                    </div>
+                                    <h3 class="text-xl font-bold text-gray-800 dark:text-white">${anniversary.title}</h3>
+                                </div>
+                                <div class="flex items-center text-sm text-gray-600 dark:text-gray-300 mb-1">
+                                    <i data-lucide="calendar" class="w-4 h-4 mr-2 inline-block"></i>
+                                    ${formatDate(anniversary.date)}
+                                </div>
+                                <div class="flex items-center text-xs text-gray-500 dark:text-gray-400">
+                                    <i data-lucide="tag" class="w-3 h-3 mr-1 inline-block"></i>
+                                    ${categoryInfo.name}
+                                </div>
+                            </div>
+                            <button class="delete-anniversary-btn p-2 rounded-full hover:bg-red-100 dark:hover:bg-red-900/30 text-red-500 hover:text-red-700 transition-all" data-index="${anniversaries.indexOf(anniversary)}">
+                                <i data-lucide="trash-2" class="w-5 h-5"></i>
+                            </button>
+                        </div>
+                        
+                        <!-- Status and Countdown -->
+                        <div class="flex items-center justify-between">
+                            <div class="flex items-center">
+                                <div class="bg-gradient-to-r ${gradientClass} rounded-full p-2 mr-3">
+                                    <i data-lucide="${statusIcon}" class="w-4 h-4 text-white"></i>
+                                </div>
+                                <span class="text-sm font-semibold text-gray-700 dark:text-gray-200">
+                                    ${statusText}
+                                </span>
+                            </div>
+                            
+                            <div class="text-right">
+                                <div class="text-3xl font-bold bg-gradient-to-r ${gradientClass} bg-clip-text text-transparent">
+                                    ${displayDays}
+                                </div>
+                                <div class="text-sm text-gray-500 dark:text-gray-400">
+                                    天
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <!-- Progress Bar -->
+                        <div class="mt-6">
+                            <div class="w-full bg-gray-200 dark:bg-gray-700 rounded-full h-2">
+                                <div class="bg-gradient-to-r ${gradientClass} h-2 rounded-full" style="width: ${Math.min(displayDays % 100, 100)}%"></div>
+                            </div>
+                        </div>
+                    </div>
+                `;
+                
+                anniversariesList.appendChild(li);
+            });
+            
+            lucide.createIcons();
+            updateStatistics();
+            
+            // Add event listeners for delete buttons
+            document.querySelectorAll('.delete-anniversary-btn').forEach(btn => {
+                btn.addEventListener('click', (e) => {
+                    const index = e.currentTarget.dataset.index;
+                    deleteAnniversary(index);
+                });
+            });
+        }
+        
+
+        
+        function addAnniversary() {
+            const title = anniversaryTitle.value.trim();
+            const date = anniversaryDate.value;
+            
+            if (!title || !date) {
+                showToast('请输入事件名称和目标日期');
+                return;
+            }
+            
+            const newAnniversary = {
+                id: Date.now().toString(),
+                title: title,
+                date: date,
+                category: anniversaryCategory.value || 'default',
+                createdAt: new Date().toISOString()
+            };
+            
+            anniversaries.push(newAnniversary);
+            saveToLocalStorage();
+            renderAnniversaries();
+            
+            // Clear inputs and close modal
+            anniversaryTitle.value = '';
+            anniversaryDate.value = '';
+            anniversaryCategory.value = 'default';
+            closeModal();
+            
+            showToast('倒数日添加成功！');
+        }
+        
+        function deleteAnniversary(index) {
+            if (confirm('确定要删除这个倒数日吗？')) {
+                anniversaries.splice(index, 1);
+                saveToLocalStorage();
+                renderAnniversaries();
+                showToast('倒数日已删除');
+            }
+        }
+
+        function openModal() {
+            countdownModal.classList.remove('hidden');
+            setTimeout(() => {
+                modalContent.classList.remove('scale-95', 'opacity-0');
+                modalContent.classList.add('scale-100', 'opacity-100');
+            }, 10);
+            anniversaryTitle.focus();
+        }
+
+        function closeModal() {
+            modalContent.classList.remove('scale-100', 'opacity-100');
+            modalContent.classList.add('scale-95', 'opacity-0');
+            setTimeout(() => {
+                countdownModal.classList.add('hidden');
+            }, 300);
+        }
+
+        function updateStatistics() {
+            const today = new Date();
+            today.setHours(0, 0, 0, 0);
+            
+            const upcoming = anniversaries.filter(anniversary => {
+                const targetDate = new Date(anniversary.date);
+                targetDate.setHours(0, 0, 0, 0);
+                return targetDate >= today;
+            }).length;
+            
+            const past = anniversaries.filter(anniversary => {
+                const targetDate = new Date(anniversary.date);
+                targetDate.setHours(0, 0, 0, 0);
+                return targetDate < today;
+            }).length;
+            
+            upcomingCountEl.textContent = upcoming;
+            pastCountEl.textContent = past;
+        }
+
+        function getCategoryInfo(category) {
+            const categories = {
+                'default': {
+                    name: '默认',
+                    icon: 'calendar',
+                    gradient: 'from-blue-400 to-purple-500',
+                    pastGradient: 'from-green-400 to-emerald-500'
+                },
+                'finance': {
+                    name: '财务',
+                    icon: 'wallet',
+                    gradient: 'from-green-400 to-emerald-500',
+                    pastGradient: 'from-teal-400 to-cyan-500'
+                },
+                'relationship': {
+                    name: '感情',
+                    icon: 'heart',
+                    gradient: 'from-pink-400 to-red-500',
+                    pastGradient: 'from-rose-400 to-orange-500'
+                },
+                'birthday': {
+                    name: '生日',
+                    icon: 'cake',
+                    gradient: 'from-purple-400 to-indigo-500',
+                    pastGradient: 'from-violet-400 to-fuchsia-500'
+                },
+                'holiday': {
+                    name: '节日',
+                    icon: 'gift',
+                    gradient: 'from-amber-400 to-yellow-500',
+                    pastGradient: 'from-orange-400 to-amber-500'
+                },
+                'work': {
+                    name: '工作',
+                    icon: 'briefcase',
+                    gradient: 'from-slate-400 to-gray-500',
+                    pastGradient: 'from-zinc-400 to-gray-500'
+                },
+                'other': {
+                    name: '其他',
+                    icon: 'star',
+                    gradient: 'from-indigo-400 to-blue-500',
+                    pastGradient: 'from-sky-400 to-blue-500'
+                }
+            };
+            
+            return categories[category] || categories['default'];
+        }
+
+        // Notification System
+        function showNotification(title, message, type = 'warning') {
+            if (!userPreferences.notifications) return;
+            
+            const notification = document.getElementById('notification');
+            const titleEl = document.getElementById('notification-title');
+            const messageEl = document.getElementById('notification-message');
+            
+            titleEl.textContent = title;
+            messageEl.textContent = message;
+            
+            notification.className = `notification ${type}`;
+            notification.classList.add('show');
+            
+            setTimeout(() => {
+                notification.classList.remove('show');
+            }, 5000);
+        }
+
+        // Smart Reminders
+        function checkReminders() {
+            const today = new Date();
+            
+            // Check for upcoming anniversaries (3 days before)
+            anniversaries.forEach(anniversary => {
+                const targetDate = new Date(anniversary.date);
+                const diffTime = targetDate - today;
+                const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+                
+                if (diffDays === 3 && diffDays > 0) {
+                    showNotification(
+                        '即将到来',
+                        `${anniversary.title} 还有3天就要到了！`,
+                        'info'
+                    );
+                }
+            });
+            
+            // Check budget warning (80% of budget)
+            if (budget) {
+                const monthlyTotal = financeRecords
+                    .filter(record => {
+                        const recordDate = new Date(record.date);
+                        return recordDate.getMonth() === today.getMonth() && 
+                               recordDate.getFullYear() === today.getFullYear();
+                    })
+                    .reduce((sum, record) => sum + record.amount, 0);
+                
+                if (monthlyTotal >= budget * 0.8 && monthlyTotal < budget) {
+                    showNotification(
+                        '预算提醒',
+                        `本月消费已达预算的${Math.round((monthlyTotal/budget)*100)}%，请注意控制支出！`,
+                        'warning'
+                    );
+                }
+            }
+            
+            // Check for consecutive days achievement
+            checkConsecutiveDays();
+        }
+
+        // Check consecutive days of recording
+        function checkConsecutiveDays() {
+            const today = new Date().toDateString();
+            const lastRecordDate = localStorage.getItem('lastRecordDate');
+            
+            if (lastRecordDate !== today) {
+                let consecutiveDays = parseInt(localStorage.getItem('consecutiveDays') || '0');
+                
+                const yesterday = new Date();
+                yesterday.setDate(yesterday.getDate() - 1);
+                
+                if (lastRecordDate === yesterday.toDateString()) {
+                    consecutiveDays++;
+                } else if (lastRecordDate !== today) {
+                    consecutiveDays = 1;
+                }
+                
+                localStorage.setItem('consecutiveDays', consecutiveDays.toString());
+                localStorage.setItem('lastRecordDate', today);
+                
+                // Check for consecutive days achievements
+                if (consecutiveDays === 7) {
+                    unlockAchievement('weekStreak', '连续记账7天');
+                } else if (consecutiveDays === 30) {
+                    unlockAchievement('monthStreak', '连续记账30天');
+                } else if (consecutiveDays === 100) {
+                    unlockAchievement('hundredDays', '连续记账100天');
+                }
+            }
+        }
+
+        // Unlock achievements
+        function unlockAchievement(id, name) {
+            if (!achievements[id]) {
+                achievements[id] = true;
+                saveToLocalStorage();
+                showNotification(
+                    '🎉 成就解锁！',
+                    `恭喜获得成就：${name}`,
+                    'success'
+                );
+                renderAchievements();
+            }
+        }
+
+        // Theme Selector Initialization
+        function initThemeSelector() {
+            const themeButtons = document.querySelectorAll('.theme-button');
+            
+            themeButtons.forEach(button => {
+                button.addEventListener('click', () => {
+                    const themeName = button.dataset.theme;
+                    applyTheme(themeName);
+                });
+            });
+            
+            // Apply saved theme
+            if (userPreferences.theme) {
+                applyTheme(userPreferences.theme);
+            }
+        }
+
+        // Theme Management
+        function applyTheme(themeName) {
+            const themes = {
+                'default': {
+                    primary: '#6366F1',
+                    secondary: '#8B5CF6',
+                    accent: '#EC4899'
+                },
+                'pink': {
+                    primary: '#EC4899',
+                    secondary: '#F472B6',
+                    accent: '#DB2777'
+                },
+                'green': {
+                    primary: '#10B981',
+                    secondary: '#34D399',
+                    accent: '#059669'
+                },
+                'orange': {
+                    primary: '#F59E0B',
+                    secondary: '#FBBF24',
+                    accent: '#D97706'
+                }
+            };
+            
+            const theme = themes[themeName];
+            if (theme) {
+                document.documentElement.style.setProperty('--primary-color', theme.primary);
+                document.documentElement.style.setProperty('--secondary-color', theme.secondary);
+                document.documentElement.style.setProperty('--accent-color', theme.accent);
+                userPreferences.theme = themeName;
+                saveToLocalStorage();
+            }
+        }
+
+        // Virtual Assistant
+        function initVirtualAssistant() {
+            const assistantButton = document.getElementById('assistant-button');
+            const assistantPanel = document.getElementById('assistant-panel');
+            const assistantInput = document.getElementById('assistant-input');
+            const assistantSend = document.getElementById('assistant-send');
+            const assistantMessages = document.getElementById('assistant-messages');
+            
+            if (!assistantButton) return;
+            
+            assistantButton.addEventListener('click', () => {
+                assistantPanel.classList.toggle('show');
+                if (assistantPanel.classList.contains('show')) {
+                    addAssistantMessage('欢迎使用理财助手！有什么可以帮您的吗？', 'assistant');
+                }
+            });
+            
+            assistantSend.addEventListener('click', () => {
+                sendAssistantMessage();
+            });
+            
+            assistantInput.addEventListener('keypress', (e) => {
+                if (e.key === 'Enter') {
+                    sendAssistantMessage();
+                }
+            });
+            
+            function sendAssistantMessage() {
+                const message = assistantInput.value.trim();
+                if (message) {
+                    addAssistantMessage(message, 'user');
+                    assistantInput.value = '';
+                    
+                    // Generate response
+                    setTimeout(() => {
+                        const response = generateAssistantResponse(message);
+                        addAssistantMessage(response, 'assistant');
+                    }, 500);
+                }
+            }
+            
+            function addAssistantMessage(text, sender) {
+                const messageDiv = document.createElement('div');
+                messageDiv.className = `mb-3 ${sender === 'user' ? 'text-right' : 'text-left'}`;
+                
+                const bubbleClass = sender === 'user' 
+                    ? 'bg-blue-100 dark:bg-blue-900 text-blue-800 dark:text-blue-200' 
+                    : 'bg-gray-100 dark:bg-gray-700 text-gray-800 dark:text-gray-200';
+                
+                messageDiv.innerHTML = `
+                    <span class="${bubbleClass} px-3 py-2 rounded-lg inline-block max-w-[80%]">
+                        ${text}
+                    </span>
+                `;
+                
+                assistantMessages.appendChild(messageDiv);
+                assistantMessages.scrollTop = assistantMessages.scrollHeight;
+            }
+            
+            function generateAssistantResponse(message) {
+                const lowerMessage = message.toLowerCase();
+                
+                if (lowerMessage.includes('你好') || lowerMessage.includes('hi')) {
+                    return '你好！很高兴为您服务。';
+                } else if (lowerMessage.includes('预算') || lowerMessage.includes('花费')) {
+                    const monthlyTotal = financeRecords
+                        .filter(record => {
+                            const recordDate = new Date(record.date);
+                            const today = new Date();
+                            return recordDate.getMonth() === today.getMonth() && 
+                                   recordDate.getFullYear() === today.getFullYear();
+                        })
+                        .reduce((sum, record) => sum + record.amount, 0);
+                    
+                    return `本月您已花费 RM${monthlyTotal.toFixed(2)}。${budget ? `预算为 RM${budget.toFixed(2)}，还剩 RM${(budget - monthlyTotal).toFixed(2)}。` : '您还没有设置预算。'}`;
+                } else if (lowerMessage.includes('帮助') || lowerMessage.includes('怎么用')) {
+                    return '我可以帮您查看预算使用情况、分析消费习惯、提供理财建议，或者只是聊聊天！';
+                } else if (lowerMessage.includes('建议') || lowerMessage.includes('理财')) {
+                    return '建议您：1. 先设置月度预算 2. 记录每一笔支出 3. 定期查看统计分析 4. 设定储蓄目标。您做得怎么样？';
+                } else {
+                    return '抱歉，我还在学习中。您可以问我关于预算、花费或者寻求理财建议！';
+                }
+            }
+        }
+        
+        // Anniversary event listeners
+        addAnniversaryBtn.addEventListener('click', addAnniversary);
+        
+        anniversaryTitle.addEventListener('keypress', (e) => {
+            if (e.key === 'Enter') {
+                addAnniversary();
+            }
+        });
+        
+        init();
+        
+        // Initialize particles.js with heart shapes
+        particlesJS('particles-js', {
+            "particles": {
+                "number": {
+                    "value": 50,
+                    "density": {
+                        "enable": true,
+                        "value_area": 800
+                    }
+                },
+                "color": {
+                    "value": ["#EC4899", "#F472B6", "#FB7185", "#F9A8D4", "#C084FC"]
+                },
+                "shape": {
+                    "type": "heart",
+                    "stroke": {
+                        "width": 0,
+                        "color": "#000000"
+                    },
+                    "polygon": {
+                        "nb_sides": 5
+                    },
+                    "image": {
+                        "src": "",
+                        "width": 100,
+                        "height": 100
+                    }
+                },
+                "opacity": {
+                    "value": 0.6,
+                    "random": true,
+                    "anim": {
+                        "enable": true,
+                        "speed": 1,
+                        "opacity_min": 0.3,
+                        "sync": false
+                    }
+                },
+                "size": {
+                    "value": 8,
+                    "random": true,
+                    "anim": {
+                        "enable": true,
+                        "speed": 2,
+                        "size_min": 4,
+                        "sync": false
+                    }
+                },
+                "line_linked": {
+                    "enable": true,
+                    "distance": 180,
+                    "color": "#EC4899",
+                    "opacity": 0.3,
+                    "width": 2
+                },
+                "move": {
+                    "enable": true,
+                    "speed": 1.5,
+                    "direction": "none",
+                    "random": true,
+                    "straight": false,
+                    "out_mode": "out",
+                    "bounce": true,
+                    "attract": {
+                        "enable": false,
+                        "rotateX": 600,
+                        "rotateY": 1200
+                    }
+                }
+            },
+            "interactivity": {
+                "detect_on": "canvas",
+                "events": {
+                    "onhover": {
+                        "enable": true,
+                        "mode": "grab"
+                    },
+                    "onclick": {
+                        "enable": true,
+                        "mode": "push"
+                    },
+                    "resize": true
+                },
+                "modes": {
+                    "grab": {
+                        "distance": 150,
+                        "line_linked": {
+                            "opacity": 0.8,
+                            "color": "#F472B6"
+                        }
+                    },
+                    "push": {
+                        "particles_nb": 6,
+                        "color": "#FB7185"
+                    },
+                    "remove": {
+                        "particles_nb": 2
+                    }
+                }
+            },
+            "retina_detect": true
+        });
+
+        // Custom heart shape for particles.js
+        window.pJSDom[0].pJS.particles.array.forEach(function(particle) {
+            // Override particle rendering to draw hearts
+            const canvas = window.pJSDom[0].pJS.canvas.el;
+            const ctx = canvas.getContext('2d');
+            
+            // Store original draw function
+            const originalDraw = particle.draw;
+            
+            // Replace with heart drawing
+            particle.draw = function() {
+                ctx.save();
+                ctx.translate(particle.x, particle.y);
+                ctx.rotate(particle.angle);
+                ctx.scale(particle.size / 10, particle.size / 10);
+                
+                // Draw heart shape
+                ctx.beginPath();
+                ctx.moveTo(0, -10);
+                ctx.bezierCurveTo(-15, -25, -30, -10, -30, 5);
+                ctx.bezierCurveTo(-30, 20, -15, 35, 0, 40);
+                ctx.bezierCurveTo(15, 35, 30, 20, 30, 5);
+                ctx.bezierCurveTo(30, -10, 15, -25, 0, -10);
+                ctx.closePath();
+                
+                // Fill with particle color
+                ctx.fillStyle = particle.color.value;
+                ctx.fill();
+                
+                ctx.restore();
+            };
+        });
+    </script>
+</body>
+</html>
